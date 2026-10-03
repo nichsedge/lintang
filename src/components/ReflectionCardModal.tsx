@@ -207,39 +207,30 @@ export const ReflectionCardModal: React.FC<ReflectionCardModalProps> = ({
         onClick={(e) => e.stopPropagation()}
         className="bg-[#172136] text-[#F4EDE1] rounded-2xl sm:rounded-3xl p-4 sm:p-7 max-w-xl w-full border-2 border-[#C9A45C]/50 shadow-2xl relative my-3 sm:my-6 space-y-4 animate-in fade-in zoom-in-95 duration-200"
       >
-        {/* Prominent Floating Close Button (High contrast, impossible to miss) */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#C2673F] hover:bg-[#d67246] active:bg-[#a95732] text-white flex items-center justify-center shadow-xl border-2 border-white transition-all transform hover:scale-110 active:scale-95 cursor-pointer"
-          title="Tutup (Esc)"
-          aria-label="Tutup pratinjau kartu"
-        >
-          <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
-        </button>
-
-        {/* Dedicated Modal Top Navigation Bar - NEVER overlaps the card */}
-        <div className="flex items-center justify-between pb-3 border-b border-white/10 pr-11 sm:pr-14">
+        {/* Modal Top Header Bar with Clean Single Close Button */}
+        <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[#C9A45C]" />
-            <span id="modal-preview-title" className="text-xs uppercase font-bold tracking-wider text-white">
+            <span id="modal-preview-title" className="text-xs uppercase font-bold tracking-wider text-[#F4EDE1]">
               Pratinjau Kartu Refleksi
             </span>
           </div>
 
           <button
             onClick={onClose}
-            className="px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl bg-white/15 hover:bg-rose-600 active:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all border border-white/20 hover:border-rose-400 shadow-sm"
-            aria-label="Tutup modal"
+            className="p-1.5 sm:px-3 sm:py-1 rounded-xl bg-white/10 hover:bg-rose-500/20 active:bg-rose-500/30 text-[#F4EDE1]/80 hover:text-white transition-all border border-white/15 hover:border-rose-400/50 flex items-center gap-1.5 text-xs cursor-pointer shadow-sm"
+            title="Tutup (Esc)"
+            aria-label="Tutup pratinjau kartu"
           >
-            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-            <span>Tutup (Esc)</span>
+            <X className="w-4 h-4" />
+            <span className="hidden sm:inline text-[11px] font-medium">Tutup</span>
           </button>
         </div>
 
-        {/* Visual Shareable Card Canvas Frame - Cleanly positioned below with zero overlap */}
+        {/* Visual Shareable Card Canvas Frame - Generous top padding for oracle card aesthetic */}
         <div
           ref={cardRef}
-          className="rounded-2xl p-4 sm:p-8 bg-[#1F2A44] border border-[#C9A45C]/50 space-y-4 sm:space-y-6 text-left relative overflow-hidden shadow-inner"
+          className="rounded-2xl px-5 pt-8 pb-6 sm:px-8 sm:pt-10 sm:pb-8 bg-[#1F2A44] border border-[#C9A45C]/50 space-y-5 sm:space-y-6 text-left relative overflow-hidden shadow-inner"
         >
           {/* Subtle starry background shimmer */}
           <div className="absolute top-3 right-6 w-1.5 h-1.5 rounded-full bg-[#C9A45C] animate-twinkle pointer-events-none" />
@@ -496,18 +487,11 @@ export const ReflectionCardModal: React.FC<ReflectionCardModalProps> = ({
             </div>
           )}
 
-          {/* Bottom Action Footer: Dedicated Easy-to-reach Close Button */}
-          <div className="pt-2 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <span className="text-[11px] text-[#F4EDE1]/50 hidden sm:inline">
-              Tekan ESC atau klik area luar untuk menutup
+          {/* Subtle dismiss hint */}
+          <div className="pt-2 text-center">
+            <span className="text-[11px] text-[#F4EDE1]/50">
+              Tekan <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono text-[#F4EDE1]/80 border border-white/10">ESC</kbd> atau klik area luar untuk menutup
             </span>
-            <button
-              onClick={onClose}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-white/10 hover:bg-rose-600/90 active:bg-rose-700 text-white font-bold text-xs border border-white/20 hover:border-rose-400 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-            >
-              <X className="w-4 h-4 text-rose-300 stroke-[2.5]" />
-              <span>Tutup Pratinjau Kartu</span>
-            </button>
           </div>
         </div>
       </div>

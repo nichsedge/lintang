@@ -1097,23 +1097,10 @@ export default function App() {
             onClick={(e) => e.stopPropagation()}
             className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-xl w-full border border-[#C9A45C]/40 shadow-2xl relative my-4 sm:my-8 max-h-[92vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
           >
-            {/* Prominent Floating Close Button */}
-            <button
-              onClick={() => {
-                setSelectedService(null);
-                setOrderSent(false);
-              }}
-              className="absolute top-3.5 right-3.5 sm:top-5 sm:right-5 p-2 sm:p-2.5 rounded-full bg-[#1F2A44] hover:bg-rose-600 text-white shadow-xl hover:shadow-2xl border-2 border-white transition-all transform hover:scale-110 active:scale-95 cursor-pointer z-20"
-              title="Tutup (Esc)"
-              aria-label="Tutup formulir"
-            >
-              <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
-            </button>
-
             {!orderSent ? (
               <div className="space-y-5">
-                {/* Dedicated Top Bar with Title & Non-overlapping Close Button */}
-                <div className="flex items-start justify-between border-b border-gray-100 pb-3 gap-3 pr-10 sm:pr-14">
+                {/* Modal Top Header Bar with Clean Single Close Button */}
+                <div className="flex items-start justify-between border-b border-gray-100 pb-3 gap-3">
                   <div>
                     <span className="text-[10px] uppercase font-bold text-[#C2673F] tracking-widest block">
                       Formulir Pemesanan Layanan
@@ -1129,11 +1116,12 @@ export default function App() {
                       setSelectedService(null);
                       setOrderSent(false);
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-600 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 border border-gray-200"
+                    className="p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-600 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 border border-gray-200 cursor-pointer"
+                    title="Tutup (Esc)"
                     aria-label="Tutup formulir"
                   >
-                    <X className="w-3.5 h-3.5" />
-                    <span>Tutup (Esc)</span>
+                    <X className="w-4 h-4" />
+                    <span className="hidden sm:inline">Tutup (Esc)</span>
                   </button>
                 </div>
 
