@@ -1,0 +1,6 @@
+{
+  "name": "Lintang · Studio Peta Diri",
+  "description": "Blueprint Brand & Layanan Interaktif: Baca polamu, pilih langkahmu. Menghadirkan kalkulator Life Path & Musim Diri, simulasi rasi Lo Shu, katalog arsitektur layanan, dan panduan brand suara.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

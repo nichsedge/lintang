@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://lintang.pages.dev/sitemap.xml
