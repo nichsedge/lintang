@@ -144,7 +144,7 @@ export const CORE_VALUES: CoreValue[] = [
   {
     name: 'Jujur',
     meaning: 'Tanpa ilusi atau janji palsu',
-    tagline: 'Bukan ramalan, tapi cermin.',
+    tagline: 'Bukan ramalan, tapi peta.',
     description: 'Tidak menjanjikan jodoh, kekayaan kilat, atau hasil pasti. Batasan setiap sistem dijelaskan secara transparan kepada klien.',
     iconName: 'ShieldCheck',
   },
@@ -741,7 +741,7 @@ export const EBOOK_PAGES = [
     page: 18,
     title: 'Penutup & Disclaimer Etis',
     chapter: 'Penutup',
-    subtitle: 'Bukan ramalan, tapi cermin. Baca polamu, pilih langkahmu.',
+    subtitle: 'Bukan ramalan, tapi peta. Baca polamu, pilih langkahmu.',
     summary: 'Layanan Lintang ditujukan untuk refleksi diri dan hiburan, bukan pengganti nasihat profesional medis, hukum, keuangan, atau psikologis.',
   },
 ];

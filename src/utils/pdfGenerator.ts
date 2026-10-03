@@ -58,7 +58,7 @@ export function generateReflectionPdf(petaDiri: FullPetaDiriResult): void {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(180, 195, 215);
-  doc.text('“Bukan ramalan, tapi cermin.”', pageWidth - margin - 6, currentY + 15, { align: 'right' });
+  doc.text('“Bukan ramalan, tapi peta.”', pageWidth - margin - 6, currentY + 15, { align: 'right' });
 
   currentY += 26;
 
@@ -393,7 +393,7 @@ export function generateReflectionPdf(petaDiri: FullPetaDiriResult): void {
   doc.text('Lintang · Studio Peta Diri | Pendekatan Reflektif & Membumi', margin, pageHeight - 12);
 
   doc.setFont('helvetica', 'italic');
-  doc.text('Bukan ramalan absolut. Data momen kelahiran diperlakukan sebagai cermin kesadaran diri.', margin, pageHeight - 9);
+  doc.text('Bukan ramalan, tapi peta. Disusun dan diperiksa dengan teliti oleh Madam Shara.', margin, pageHeight - 9);
 
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(31, 42, 68);

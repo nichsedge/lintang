@@ -159,7 +159,7 @@ export const ReflectionCardModal: React.FC<ReflectionCardModalProps> = ({
       `Life Path ${petaDiri.lifePath.number}: ${petaDiri.lifePath.name}\n` +
       `Musim Diri: ${petaDiri.personalYear.stageName}\n` +
       `Kartu Lahir: ${petaDiri.tarotCard.cardName}\n\n` +
-      `Bukan ramalan, tapi cermin.`
+      `Bukan ramalan, tapi peta.`
     );
     const url = encodeURIComponent(typeof window !== 'undefined' ? window.location.href : 'https://lintangpetadiri.com');
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
@@ -352,7 +352,7 @@ export const ReflectionCardModal: React.FC<ReflectionCardModalProps> = ({
           {/* Card Footer */}
           <div className="text-[10px] text-[#F4EDE1]/50 border-t border-white/10 pt-3 flex flex-col sm:flex-row items-center justify-between gap-1 font-mono">
             <span>lintangpetadiri.com</span>
-            <span>“Bukan ramalan, tapi cermin.”</span>
+            <span>“Bukan ramalan, tapi peta.”</span>
           </div>
         </div>
 

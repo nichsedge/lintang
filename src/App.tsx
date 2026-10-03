@@ -13,13 +13,19 @@ import {
   Copy,
   CheckCircle2,
   Shield,
+  ShieldCheck,
   MessageCircle,
   Share2,
   RotateCw,
   Gift,
   X,
   FileText,
-  Menu
+  Menu,
+  BookOpen,
+  AlertCircle,
+  QrCode,
+  CreditCard,
+  Wallet
 } from 'lucide-react';
 import { LoShuCanvas } from './components/LoShuCanvas';
 import { SERVICES, ServiceItem } from './data/blueprintData';
@@ -29,11 +35,18 @@ import { OrbitWheel } from './components/OrbitWheel';
 import { LoShuInteractiveGrid } from './components/LoShuInteractiveGrid';
 import { DuaLintangVisualizer } from './components/DuaLintangVisualizer';
 import { ReflectionCardModal } from './components/ReflectionCardModal';
+import { KadoLintangSection } from './components/KadoLintangSection';
+import { JurnalSection } from './components/JurnalSection';
+import { LegalModal, LegalDocType } from './components/LegalModal';
+import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { generateReflectionPdf } from './utils/pdfGenerator';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'beranda' | 'kalkulator' | 'layanan' | 'dua-lintang' | 'tentang'>('beranda');
+  const [activeTab, setActiveTab] = useState<'beranda' | 'layanan' | 'kalkulator' | 'dua-lintang' | 'kado' | 'jurnal' | 'tentang'>('beranda');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Weekly Quota Indicator
+  const weeklyQuota = { remaining: 4, total: 15, currentWeek: 'Minggu ke-1 Oktober 2026' };
 
   // Calculator Form State
   const [calcName, setCalcName] = useState('Nirwana');
@@ -51,17 +64,53 @@ export default function App() {
     return calcResult?.personalYear.personalYear || 1;
   });
 
-  // Share Card Modal State
+  // Modals State
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
+  const [legalModalDoc, setLegalModalDoc] = useState<LegalDocType>('disclaimer');
 
   // Booking Modal State
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
+  const [bookingStep, setBookingStep] = useState<1 | 2 | 3>(1);
   const [bookingAddOns, setBookingAddOns] = useState({ kisiSembilan: false, jejakKarma: false, kadoLintang: false });
-  const [bookingForm, setBookingForm] = useState({ name: '', birthDate: '', birthTime: '', birthCity: '', partnerName: '', partnerDate: '', giftNote: '' });
-  const [orderSent, setOrderSent] = useState(false);
+  const [bookingForm, setBookingForm] = useState({
+    name: '',
+    birthDate: '',
+    birthTime: '',
+    unknownTime: false,
+    unknownTimeAcknowledged: false,
+    birthCity: 'Jakarta',
+    gender: 'wanita' as 'pria' | 'wanita',
+    partnerName: '',
+    partnerDate: '',
+    partnerTime: '',
+    partnerConsent: false,
+    giftNote: '',
+    pdpConsent: true,
+    promoConsent: false,
+    paymentMethod: 'qris' as 'qris' | 'va' | 'ewallet',
+  });
+  const [generatedOrderNumber, setGeneratedOrderNumber] = useState('');
 
   // Service Filter
   const [serviceCategory, setServiceCategory] = useState<string>('all');
+
+  // Date Formatter helper
+  const formatDateToIndonesian = (dateStr: string) => {
+    if (!dateStr) return '-';
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const year = parts[0];
+      const monthIndex = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      return `${day} ${months[monthIndex] || parts[1]} ${year}`;
+    }
+    return dateStr;
+  };
 
   // Close booking modal on Escape key
   useEffect(() => {
@@ -69,7 +118,7 @@ export default function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setSelectedService(null);
-        setOrderSent(false);
+        setBookingStep(1);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -103,17 +152,61 @@ export default function App() {
     return SERVICES.filter((s) => s.category === serviceCategory);
   }, [serviceCategory]);
 
-  const handleSendWhatsAppOrder = () => {
+  const handleStartBooking = (service: ServiceItem, isGift: boolean = false) => {
+    setSelectedService(service);
+    setBookingStep(1);
+    setBookingAddOns((prev) => ({ ...prev, kadoLintang: isGift }));
+    setBookingForm((prev) => ({
+      ...prev,
+      name: prev.name || calcName,
+      birthDate: prev.birthDate || calcDate,
+      birthTime: prev.birthTime || calcTime,
+      birthCity: prev.birthCity || calcCity,
+    }));
+  };
+
+  const handleProceedToSummary = () => {
+    if (!bookingForm.name || !bookingForm.birthDate) {
+      alert('Mohon isi nama lengkap dan tanggal lahir terlebih dahulu.');
+      return;
+    }
+    if (selectedService?.category === 'seri-langit' && bookingForm.unknownTime && !bookingForm.unknownTimeAcknowledged) {
+      alert('Mohon centang konfirmasi bahwa kamu memahami batasan laporan tanpa jam lahir.');
+      return;
+    }
+    if (selectedService?.category === 'seri-relasi' && !bookingForm.partnerConsent) {
+      alert('Mohon centang persetujuan izin orang kedua untuk memproses data lahirnya.');
+      return;
+    }
+    if (!bookingForm.pdpConsent) {
+      alert('Mohon setujui persetujuan pemrosesan data lahir sesuai ketentuan privasi UU PDP.');
+      return;
+    }
+    // Generate order number
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const orderNo = `LTG-202610-${randomSuffix}`;
+    setGeneratedOrderNumber(orderNo);
+    setBookingStep(2);
+  };
+
+  const handleConfirmAndSendOrder = () => {
     if (!selectedService) return;
-    let msg = `Halo Lintang · Studio Peta Diri! ✨\nSaya ingin memesan layanan:\n\n`;
+    let msg = `Halo Madam Shara & Tim Lintang! ✨\nSaya ingin mengonfirmasi pesanan laporan peta diri:\n\n`;
+    msg += `🏷️ *Nomor Pesanan:* ${generatedOrderNumber}\n`;
     msg += `📌 *Layanan:* ${selectedService.name} (${selectedService.subtitle})\n`;
     msg += `💵 *Tarif:* ${selectedService.price}\n`;
-    msg += `\n👤 *Data Pemesan:*\n• Nama: ${bookingForm.name || calcName}\n• Tanggal Lahir: ${bookingForm.birthDate || calcDate}\n`;
-    if (bookingForm.birthTime) msg += `• Jam Lahir: ${bookingForm.birthTime}\n`;
+    msg += `💳 *Metode Pembayaran:* ${bookingForm.paymentMethod.toUpperCase()}\n`;
+    msg += `\n👤 *Data Pemesan:*\n• Nama: ${bookingForm.name}\n• Tanggal Lahir: ${formatDateToIndonesian(bookingForm.birthDate)}\n`;
+    
+    if (bookingForm.unknownTime) {
+      msg += `• Jam Lahir: Tidak Diketahui (Format disesuaikan)\n`;
+    } else if (bookingForm.birthTime) {
+      msg += `• Jam Lahir: ${bookingForm.birthTime}\n`;
+    }
     if (bookingForm.birthCity) msg += `• Kota Lahir: ${bookingForm.birthCity}\n`;
 
     if (selectedService.category === 'seri-relasi' && bookingForm.partnerName) {
-      msg += `\n👥 *Data Pasangan:*\n• Nama: ${bookingForm.partnerName}\n• Tanggal Lahir: ${bookingForm.partnerDate}\n`;
+      msg += `\n👥 *Data Orang Kedua:*\n• Nama: ${bookingForm.partnerName}\n• Tanggal Lahir: ${formatDateToIndonesian(bookingForm.partnerDate)}\n• Izin: Terkonfirmasi\n`;
     }
 
     const addOns: string[] = [];
@@ -125,9 +218,16 @@ export default function App() {
       msg += `\n🎁 *Add-on:* ${addOns.join(', ')}\n`;
     }
 
-    msg += `\nMohon informasi ketersediaan slot pengerjaan. Terima kasih! 🌿`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-    setOrderSent(true);
+    msg += `\n🔒 *Privasi:* Menyetujui pemrosesan data lahir sesuai UU No. 27/2022 PDP.\n`;
+    msg += `Mohon konfirmasi instruksi transfer dan ketersediaan slot pengerjaan. Terima kasih! 🌿`;
+
+    window.open(`https://wa.me/6281234567890?text=${encodeURIComponent(msg)}`, '_blank');
+    setBookingStep(3);
+  };
+
+  const openLegalModalWithDoc = (doc: LegalDocType) => {
+    setLegalModalDoc(doc);
+    setIsLegalModalOpen(true);
   };
 
   return (
@@ -135,12 +235,13 @@ export default function App() {
       {/* STICKY HEADER */}
       <header className="sticky top-0 z-40 bg-[#1F2A44]/95 backdrop-blur-md border-b border-[#C9A45C]/20 text-[#F4EDE1]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+          {/* Brand Logo & Descriptor */}
           <div
             onClick={() => setActiveTab('beranda')}
             className="flex items-center gap-3 cursor-pointer group"
           >
-            <div className="w-9 h-9 rounded-xl bg-[#172136] border border-[#C9A45C]/40 flex items-center justify-center p-1 group-hover:border-[#C9A45C] transition-all shadow-md">
-              <LoShuCanvas activeNodes={[8, 5, 2, 9]} lines={[[8, 5], [5, 2], [5, 9]]} size={28} />
+            <div className="w-10 h-10 rounded-xl bg-[#172136] border border-[#C9A45C]/40 flex items-center justify-center p-1 group-hover:border-[#C9A45C] transition-all shadow-md">
+              <LoShuCanvas activeNodes={[8, 5, 2, 9]} lines={[[8, 5], [5, 2], [5, 9]]} size={30} />
             </div>
             <div>
               <span className="font-serif-cormorant text-2xl font-bold tracking-tight text-white leading-none">
@@ -149,51 +250,64 @@ export default function App() {
               <span className="text-[9px] tracking-[0.22em] uppercase text-[#C9A45C] font-semibold block mt-0.5">
                 Studio Peta Diri
               </span>
+              <span className="text-[8px] tracking-wider text-[#F4EDE1]/60 italic block">
+                oleh Madam Shara
+              </span>
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center gap-1.5 text-xs font-medium">
+          {/* Desktop Navigation (5 Core Items + Home) */}
+          <nav className="hidden lg:flex items-center gap-1 text-xs font-medium">
             <button
               onClick={() => setActiveTab('beranda')}
               className={`px-3 py-2 rounded-lg transition-all ${
-                activeTab === 'beranda' ? 'bg-[#C2673F] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
+                activeTab === 'beranda' ? 'bg-[#A8512C] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
               }`}
             >
               Beranda
             </button>
             <button
+              onClick={() => setActiveTab('layanan')}
+              className={`px-3 py-2 rounded-lg transition-all ${
+                activeTab === 'layanan' ? 'bg-[#A8512C] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              Layanan (Katalog)
+            </button>
+            <button
               onClick={() => setActiveTab('kalkulator')}
               className={`px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 ${
-                activeTab === 'kalkulator' ? 'bg-[#C2673F] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
+                activeTab === 'kalkulator' ? 'bg-[#A8512C] text-white shadow-sm' : 'text-[#C9A45C] font-bold hover:bg-white/5'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 text-[#C9A45C]" />
-              <span>Peta Diri Interaktif</span>
+              <span>Kalkulator Gratis</span>
             </button>
             <button
-              onClick={() => setActiveTab('layanan')}
-              className={`px-3 py-2 rounded-lg transition-all ${
-                activeTab === 'layanan' ? 'bg-[#C2673F] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              Layanan & Pembacaan
-            </button>
-            <button
-              onClick={() => setActiveTab('dua-lintang')}
+              onClick={() => setActiveTab('kado')}
               className={`px-3 py-2 rounded-lg transition-all flex items-center gap-1 ${
-                activeTab === 'dua-lintang' ? 'bg-[#C2673F] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
+                activeTab === 'kado' ? 'bg-[#A8512C] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Heart className="w-3.5 h-3.5 text-[#C9A45C]" />
-              <span>Dua Lintang (Pasangan)</span>
+              <Gift className="w-3.5 h-3.5 text-[#C9A45C]" />
+              <span>Kado Lintang</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('jurnal')}
+              className={`px-3 py-2 rounded-lg transition-all flex items-center gap-1 ${
+                activeTab === 'jurnal' ? 'bg-[#A8512C] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5 text-[#C9A45C]" />
+              <span>Jurnal</span>
             </button>
             <button
               onClick={() => setActiveTab('tentang')}
               className={`px-3 py-2 rounded-lg transition-all ${
-                activeTab === 'tentang' ? 'bg-[#C2673F] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
+                activeTab === 'tentang' ? 'bg-[#A8512C] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
               }`}
             >
-              Filosofi Kami
+              Tentang
             </button>
           </nav>
 
@@ -216,14 +330,14 @@ export default function App() {
               className="px-3 sm:px-4 py-2 rounded-xl bg-[#C9A45C] hover:bg-[#d8b56f] text-[#1F2A44] text-xs font-semibold shadow transition-all flex items-center gap-1.5 active:scale-95"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Cek Peta Diri</span>
-              <span className="sm:hidden">Peta Diri</span>
+              <span className="hidden sm:inline">Coba Kalkulator</span>
+              <span className="sm:hidden">Kalkulator</span>
             </button>
 
             {/* Mobile Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+              className="lg:hidden p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
               aria-label={mobileMenuOpen ? 'Tutup menu' : 'Buka menu'}
             >
               {mobileMenuOpen ? <X className="w-5 h-5 text-[#C9A45C]" /> : <Menu className="w-5 h-5" />}
@@ -233,73 +347,30 @@ export default function App() {
 
         {/* Mobile Navigation Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-[#182238] border-b border-[#C9A45C]/30 px-4 pt-3 pb-5 space-y-2 animate-in slide-in-from-top-2 duration-200 shadow-2xl">
+          <div className="lg:hidden bg-[#182238] border-b border-[#C9A45C]/30 px-4 pt-3 pb-5 space-y-2 animate-in slide-in-from-top-2 duration-200 shadow-2xl">
             <div className="text-[10px] uppercase font-bold tracking-widest text-[#C9A45C] px-2 mb-1">
               Navigasi Halaman
             </div>
             <div className="grid grid-cols-1 gap-1">
-              <button
-                onClick={() => { setActiveTab('beranda'); setMobileMenuOpen(false); }}
-                className={`w-full px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold flex items-center gap-2.5 transition-all ${
-                  activeTab === 'beranda' ? 'bg-[#C2673F] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:bg-white/10'
-                }`}
-              >
-                <span>Beranda</span>
-              </button>
-              <button
-                onClick={() => { setActiveTab('kalkulator'); setMobileMenuOpen(false); }}
-                className={`w-full px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold flex items-center gap-2.5 transition-all ${
-                  activeTab === 'kalkulator' ? 'bg-[#C2673F] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:bg-white/10'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#C9A45C]" />
-                <span>Peta Diri Interaktif (Kalkulator)</span>
-              </button>
-              <button
-                onClick={() => { setActiveTab('layanan'); setMobileMenuOpen(false); }}
-                className={`w-full px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold flex items-center gap-2.5 transition-all ${
-                  activeTab === 'layanan' ? 'bg-[#C2673F] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:bg-white/10'
-                }`}
-              >
-                <span>Katalog Layanan & Pembacaan</span>
-              </button>
-              <button
-                onClick={() => { setActiveTab('dua-lintang'); setMobileMenuOpen(false); }}
-                className={`w-full px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold flex items-center gap-2.5 transition-all ${
-                  activeTab === 'dua-lintang' ? 'bg-[#C2673F] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:bg-white/10'
-                }`}
-              >
-                <Heart className="w-3.5 h-3.5 text-[#C9A45C]" />
-                <span>Dua Lintang (Sinergi Pasangan)</span>
-              </button>
-              <button
-                onClick={() => { setActiveTab('tentang'); setMobileMenuOpen(false); }}
-                className={`w-full px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold flex items-center gap-2.5 transition-all ${
-                  activeTab === 'tentang' ? 'bg-[#C2673F] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:bg-white/10'
-                }`}
-              >
-                <span>Filosofi & Etika Kami</span>
-              </button>
+              {[
+                { id: 'beranda', label: 'Beranda' },
+                { id: 'layanan', label: 'Layanan & Pembacaan' },
+                { id: 'kalkulator', label: 'Kalkulator Gratis (Lead Magnet)' },
+                { id: 'kado', label: 'Kado Lintang (Pesan Untuk Orang Lain)' },
+                { id: 'jurnal', label: 'Jurnal & Catatan Edukasi' },
+                { id: 'tentang', label: 'Tentang & Profil Madam Shara' },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => { setActiveTab(item.id as any); setMobileMenuOpen(false); }}
+                  className={`w-full px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold flex items-center gap-2.5 transition-all ${
+                    activeTab === item.id ? 'bg-[#A8512C] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:bg-white/10'
+                  }`}
+                >
+                  <span>{item.label}</span>
+                </button>
+              ))}
             </div>
-
-            {calcResult && (
-              <div className="pt-2 border-t border-white/10 flex items-center gap-2">
-                <button
-                  onClick={() => { setIsShareModalOpen(true); setMobileMenuOpen(false); }}
-                  className="flex-1 py-2 px-3 rounded-xl bg-white/10 text-white text-xs font-medium flex items-center justify-center gap-1.5 border border-white/15"
-                >
-                  <Share2 className="w-3.5 h-3.5 text-[#C9A45C]" />
-                  <span>Kartu Refleksi</span>
-                </button>
-                <button
-                  onClick={() => { generateReflectionPdf(calcResult); setMobileMenuOpen(false); }}
-                  className="flex-1 py-2 px-3 rounded-xl bg-[#C9A45C]/20 text-[#C9A45C] text-xs font-semibold flex items-center justify-center gap-1.5 border border-[#C9A45C]/40"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>Unduh PDF</span>
-                </button>
-              </div>
-            )}
           </div>
         )}
       </header>
@@ -307,8 +378,8 @@ export default function App() {
       {/* VIEW: BERANDA */}
       {activeTab === 'beranda' && (
         <div>
-          {/* HERO */}
-          <section className="bg-[#1F2A44] text-[#F4EDE1] pt-16 pb-24 px-4 text-center relative overflow-hidden">
+          {/* HERO SECTION */}
+          <section className="bg-[#1F2A44] text-[#F4EDE1] pt-12 pb-24 px-4 text-center relative overflow-hidden">
             <div className="absolute top-8 right-8 sm:right-24 w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-[#F4EDE1] shadow-[0_0_50px_rgba(244,237,225,0.3)] flex items-center justify-center pointer-events-none">
               <div className="w-18 h-18 sm:w-24 sm:h-24 rounded-full bg-[#1F2A44] -translate-x-3 -translate-y-1" />
             </div>
@@ -316,9 +387,16 @@ export default function App() {
             <div className="absolute top-36 left-12 w-2 h-2 rounded-full bg-white/70 animate-twinkle-slow pointer-events-none" />
 
             <div className="max-w-3xl mx-auto relative z-10 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-[#C9A45C]/40 text-[#C9A45C] text-xs font-medium tracking-wider uppercase">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Studio Peta Diri · Bukan Ramalan, Tapi Cermin</span>
+              {/* Status Badge + Weekly Quota Counter */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-[#C9A45C]/40 text-[#C9A45C] text-xs font-medium tracking-wider uppercase">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Studio Peta Diri · Bukan Ramalan, Tapi Peta</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8A9A7B]/20 border border-[#8A9A7B]/40 text-emerald-300 text-xs font-semibold">
+                  <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Slot Minggu Ini: Tersisa {weeklyQuota.remaining} dari {weeklyQuota.total} laporan</span>
+                </div>
               </div>
 
               {/* Rasi 8-5-2+9 Central Icon */}
@@ -333,7 +411,7 @@ export default function App() {
                   Baca polamu, pilih langkahmu.
                 </h1>
                 <p className="text-base sm:text-lg text-[#F4EDE1]/85 max-w-xl mx-auto leading-relaxed">
-                  Kenali ritme hidup, potensi tersembunyi, dan arah karier lewat perpaduan cerdas
+                  Kenali ritme hidup, potensi bawaan lahir, dan arah karier lewat perpaduan cerdas
                   <strong> Numerologi, Astrologi, BaZi, Human Design, dan Tarot</strong>.
                 </p>
               </div>
@@ -341,16 +419,16 @@ export default function App() {
               <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                 <button
                   onClick={() => setActiveTab('kalkulator')}
-                  className="px-6 py-3.5 rounded-xl bg-[#C9A45C] hover:bg-[#d8b56f] text-[#1F2A44] font-semibold text-sm shadow-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5"
+                  className="px-6 py-3.5 rounded-xl bg-[#C9A45C] hover:bg-[#d8b56f] text-[#1F2A44] font-semibold text-sm shadow-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>Hitung Peta Dirimu Sekarang (Gratis)</span>
+                  <span>Coba Kalkulator Gratis (Life Path + Musim Diri)</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('layanan')}
-                  className="px-6 py-3.5 rounded-xl bg-[#C2673F] hover:bg-[#d67246] text-white font-semibold text-sm shadow-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5"
+                  className="px-6 py-3.5 rounded-xl bg-[#A8512C] hover:bg-[#924221] text-white font-semibold text-sm shadow-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
                 >
-                  <span>Lihat Pilihan Laporan & Konsultasi</span>
+                  <span>Lihat 4 Lini Layanan</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -366,7 +444,7 @@ export default function App() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-[#8A9A7B]" />
-                  <span>Data Lahir Dijamin Privasi</span>
+                  <span>Privasi UU No. 27/2022 Terjamin</span>
                 </span>
               </div>
             </div>
@@ -382,19 +460,13 @@ export default function App() {
           </section>
 
           {/* 3 CORE PILLARS */}
-          <motion.section
-            initial={{ opacity: 0, y: 35 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-6xl mx-auto px-4 sm:px-6 py-16 space-y-12"
-          >
+          <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 space-y-12">
             <div className="text-center space-y-2 max-w-xl mx-auto">
               <span className="text-xs uppercase tracking-widest text-[#C2673F] font-bold">
                 Mengapa Memilih Lintang?
               </span>
               <h2 className="font-serif-cormorant text-3xl sm:text-4xl font-bold text-[#1F2A44]">
-                Bukan ramalan masa depan, melainkan cermin refleksi diri.
+                Bukan ramalan masa depan, melainkan peta pemahaman diri.
               </h2>
               <p className="text-xs sm:text-sm text-[#1F2A44]/75 leading-relaxed">
                 Kami membantu memetakan pola bawaan lahir agar kamu bisa memilih langkah hidup dengan lebih sadar dan berdaya.
@@ -406,7 +478,7 @@ export default function App() {
                 {
                   icon: <Compass className="w-5 h-5 text-[#C2673F]" />,
                   title: 'Sintesis 10 Sistem Pemetaan',
-                  desc: 'Menyatukan kebijaksanaan Barat (Numerologi Pythagoras, Astrologi Natal, Tarot) dan Timur (BaZi 4 Pilar, Lo Shu Grid, I Ching) ke dalam narasi bahasa Indonesia yang mudah dimengerti.',
+                  desc: 'Menyatukan kebijaksanaan Barat (Numerologi Pythagoras, Astrologi Natal, Tarot) dan Timur (BaZi 4 Pilar, Lo Shu Grid) ke dalam narasi bahasa Indonesia yang mudah dimengerti.',
                 },
                 {
                   icon: <Heart className="w-5 h-5 text-[#8A9A7B]" />,
@@ -419,12 +491,8 @@ export default function App() {
                   desc: 'Setiap laporan ditutup dengan “Langkah Minggu Ini”: rekomendasi konkret dan aplikatif yang bisa langsung kamu terapkan dalam karier dan relasi.',
                 },
               ].map((pillar, idx) => (
-                <motion.div
+                <div
                   key={idx}
-                  initial={{ opacity: 0, y: 25 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: idx * 0.12 }}
                   className="p-6 rounded-2xl bg-white border border-[#1F2A44]/10 shadow-sm space-y-3 hover:border-[#C9A45C] transition-all"
                 >
                   <div className="w-10 h-10 rounded-xl bg-[#F4EDE1] flex items-center justify-center">
@@ -436,19 +504,51 @@ export default function App() {
                   <p className="text-xs text-[#1F2A44]/80 leading-relaxed">
                     {pillar.desc}
                   </p>
-                </motion.div>
+                </div>
               ))}
             </div>
-          </motion.section>
+          </section>
+
+          {/* 3 STEPS HOW IT WORKS */}
+          <section className="bg-white py-14 border-y border-[#1F2A44]/10">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-8">
+              <div className="text-center space-y-2">
+                <span className="text-xs uppercase tracking-widest text-[#C2673F] font-bold">
+                  Alur Mudah Pemesanan
+                </span>
+                <h3 className="font-serif-cormorant text-3xl font-bold text-[#1F2A44]">
+                  Cara Kerja Lintang dalam 3 Langkah
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="p-6 rounded-2xl bg-[#F4EDE1]/50 border border-gray-200 space-y-2">
+                  <div className="text-xs font-bold text-[#C2673F] font-mono">LANGKAH 01</div>
+                  <h4 className="font-serif-cormorant text-xl font-bold text-[#1F2A44]">Pilih Layanan</h4>
+                  <p className="text-xs text-[#1F2A44]/75">
+                    Pilih lini yang sesuai kebutuhanmu: Seri Angka, Seri Langit, Seri Relasi, atau Paket Lengkap Lintang Utuh.
+                  </p>
+                </div>
+                <div className="p-6 rounded-2xl bg-[#F4EDE1]/50 border border-gray-200 space-y-2">
+                  <div className="text-xs font-bold text-[#C2673F] font-mono">LANGKAH 02</div>
+                  <h4 className="font-serif-cormorant text-xl font-bold text-[#1F2A44]">Isi Data Lahir Aman</h4>
+                  <p className="text-xs text-[#1F2A44]/75">
+                    Masukkan nama akta dan tanggal lahir. Jika jam lahir tidak diketahui, sistem otomatis menyesuaikan batasan laporan.
+                  </p>
+                </div>
+                <div className="p-6 rounded-2xl bg-[#F4EDE1]/50 border border-gray-200 space-y-2">
+                  <div className="text-xs font-bold text-[#C2673F] font-mono">LANGKAH 03</div>
+                  <h4 className="font-serif-cormorant text-xl font-bold text-[#1F2A44]">Terima Laporan PDF</h4>
+                  <p className="text-xs text-[#1F2A44]/75">
+                    Laporan dikerjakan manual oleh Madam Shara (2–3 hari kerja) dan dikirim via WhatsApp dengan garansi revisi data 24 jam.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
 
           {/* DUA LINTANG QUICK PROMO */}
-          <motion.section
-            initial={{ opacity: 0, y: 35 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-6xl mx-auto px-4 sm:px-6 py-8"
-          >
+          <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
             <div className="bg-[#1F2A44] text-[#F4EDE1] rounded-3xl p-8 sm:p-12 border border-[#C9A45C]/40 shadow-xl flex flex-col md:flex-row items-center justify-between gap-8">
               <div className="space-y-4 max-w-xl">
                 <div className="inline-flex items-center gap-1.5 text-xs uppercase font-bold text-[#C9A45C]">
@@ -461,13 +561,22 @@ export default function App() {
                 <p className="text-xs sm:text-sm text-[#F4EDE1]/85 leading-relaxed">
                   Uji kecocokan dua tanggal kelahiran untuk menemukan titik sinergi alami, sumber potensi salah paham, dan bahasa komunikasi yang perlu dilatih bersama.
                 </p>
-                <button
-                  onClick={() => setActiveTab('dua-lintang')}
-                  className="px-5 py-2.5 rounded-xl bg-[#C2673F] hover:bg-[#d67246] text-white text-xs font-semibold shadow transition-all flex items-center gap-1.5"
-                >
-                  <span>Coba Simulator Kecocokan Pasangan</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => setActiveTab('dua-lintang')}
+                    className="px-5 py-2.5 rounded-xl bg-[#A8512C] hover:bg-[#924221] text-white text-xs font-semibold shadow transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Coba Simulator Pasangan</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('kado')}
+                    className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-[#F4EDE1] text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Gift className="w-3.5 h-3.5 text-[#C9A45C]" />
+                    <span>Pesan Sebagai Kado</span>
+                  </button>
+                </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-[#172136] border border-white/10 text-center flex items-center gap-3">
@@ -482,387 +591,241 @@ export default function App() {
                 </div>
               </div>
             </div>
-          </motion.section>
+          </section>
         </div>
       )}
 
       {/* VIEW: KALKULATOR PETA DIRI INTERAKTIF LENGKAP */}
       {activeTab === 'kalkulator' && (
         <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12 space-y-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center space-y-2 max-w-xl mx-auto"
-          >
+          <div className="text-center space-y-2 max-w-xl mx-auto">
             <span className="text-xs uppercase tracking-widest text-[#C2673F] font-bold">
-              Kalkulator Peta Diri Interaktif
+              Kalkulator Interaktif Gratis
             </span>
             <h1 className="font-serif-cormorant text-4xl sm:text-5xl font-bold text-[#1F2A44]">
-              Hitung Pola & Rasi Kelahiranmu
+              Hitung Peta Dirimu
             </h1>
             <p className="text-xs sm:text-sm text-[#1F2A44]/75">
-              Masukkan tanggal kelahiranmu untuk melihat Life Path Pythagoras, roda siklus 9 tahun yang bisa kamu putar, kartu tarot lahir yang bisa dibalik secara 3D, dan kisi rasi Lo Shu 3×3.
+              Masukkan nama panggilan dan tanggal lahir untuk mengkalkulasi Life Path, Tahun Personal, Kartu Lahir Tarot, dan Kisi Lo Shu.
             </p>
-          </motion.div>
+          </div>
 
-          {/* Form Input */}
-          <motion.div
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55 }}
-            className="bg-white rounded-3xl p-6 sm:p-8 border border-[#1F2A44]/10 shadow-sm"
-          >
-            <form onSubmit={handleRunCalculator} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {/* Calculator Input Form */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#1F2A44]/10 shadow-lg space-y-6">
+            <form onSubmit={handleRunCalculator} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-[#1F2A44] mb-1">Nama Panggilan</label>
+                <label className="block text-xs font-semibold text-[#1F2A44] mb-1">
+                  Nama Panggilan / Lengkap
+                </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <User className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
                   <input
                     type="text"
-                    required
                     value={calcName}
                     onChange={(e) => setCalcName(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-300 text-xs focus:ring-1 focus:ring-[#C2673F] outline-none"
-                    placeholder="Nama kamu"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-300 text-xs focus:ring-2 focus:ring-[#C2673F] outline-none"
+                    placeholder="Contoh: Nirwana"
+                    required
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-[#1F2A44] mb-1">
-                  Tanggal Lahir <span className="text-rose-500">*</span>
+                  Tanggal Lahir
                 </label>
                 <div className="relative">
-                  <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
                   <input
                     type="date"
-                    required
                     value={calcDate}
                     onChange={(e) => setCalcDate(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-300 text-xs focus:ring-1 focus:ring-[#C2673F] outline-none"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-300 text-xs focus:ring-2 focus:ring-[#C2673F] outline-none"
+                    required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#1F2A44] mb-1">Jam Lahir (opsional)</label>
+                <label className="block text-xs font-semibold text-[#1F2A44] mb-1">
+                  Jam Lahir (Opsional)
+                </label>
                 <div className="relative">
-                  <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Clock className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
                   <input
                     type="time"
                     value={calcTime}
                     onChange={(e) => setCalcTime(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-300 text-xs focus:ring-1 focus:ring-[#C2673F] outline-none"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-300 text-xs focus:ring-2 focus:ring-[#C2673F] outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#1F2A44] mb-1">Kota Lahir (opsional)</label>
+                <label className="block text-xs font-semibold text-[#1F2A44] mb-1">
+                  Kota Kelahiran
+                </label>
                 <div className="relative">
-                  <MapPin className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <MapPin className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
                   <input
                     type="text"
                     value={calcCity}
                     onChange={(e) => setCalcCity(e.target.value)}
-                    placeholder="Contoh: Bandung"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-300 text-xs focus:ring-1 focus:ring-[#C2673F] outline-none"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-300 text-xs focus:ring-2 focus:ring-[#C2673F] outline-none"
+                    placeholder="Contoh: Yogyakarta"
                   />
                 </div>
               </div>
 
-              <div className="sm:col-span-2 lg:col-span-4 flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-                <span className="text-xs text-gray-500">
-                  🔒 Perhitungan langsung aman di browsermu & tidak disimpan tanpa izin.
-                </span>
+              <div className="sm:col-span-2 lg:col-span-4 pt-2">
                 <button
                   type="submit"
                   disabled={isCalculating}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#C2673F] hover:bg-[#d67246] disabled:opacity-85 disabled:cursor-wait text-white text-xs font-semibold shadow transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 px-6 rounded-xl bg-[#A8512C] hover:bg-[#924221] active:bg-[#7e3518] text-white font-semibold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  {isCalculating ? (
-                    <>
-                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Menyelaraskan Orbit ({calcProgress}%)...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>Perbarui Peta Refleksi</span>
-                    </>
-                  )}
+                  <Sparkles className="w-4 h-4" />
+                  <span>{isCalculating ? 'Menghitung Pola Diri...' : 'Hitung Peta Diri Sekarang'}</span>
                 </button>
               </div>
             </form>
 
-            {/* CELESTIAL ORBIT PROGRESS CIRCLE LOADING STATE */}
-            {isCalculating ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.35 }}
-                className="mt-8 pt-8 border-t border-gray-100 flex flex-col items-center justify-center py-12 px-4 rounded-3xl bg-[#1F2A44] text-[#F4EDE1] border-2 border-[#C9A45C]/40 shadow-2xl relative overflow-hidden text-center space-y-6"
-              >
-                {/* Ambient starry backdrop particles */}
-                <div className="absolute top-4 left-8 w-1.5 h-1.5 rounded-full bg-[#C9A45C] animate-twinkle pointer-events-none" />
-                <div className="absolute bottom-6 right-10 w-1 h-1 rounded-full bg-white/80 animate-twinkle-slow pointer-events-none" />
-                <div className="absolute top-1/2 left-6 w-1 h-1 rounded-full bg-white/50 animate-twinkle pointer-events-none" />
-                <div className="absolute top-8 right-16 w-2 h-2 rounded-full bg-[#C2673F]/60 animate-twinkle-slow pointer-events-none" />
+            {isCalculating && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs text-[#1F2A44]/70 font-mono">
+                  <span>Mengkalkulasi matriks tanggal lahir...</span>
+                  <span>{calcProgress}%</span>
+                </div>
+                <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full bg-[#C9A45C] transition-all duration-200 rounded-full"
+                    style={{ width: `${calcProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
-                {/* Center SVG Orbit Progress Circle */}
-                <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center select-none">
-                  <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 160 160">
-                    <defs>
-                      <linearGradient id="orbit-progress-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#C9A45C" />
-                        <stop offset="50%" stopColor="#C2673F" />
-                        <stop offset="100%" stopColor="#F4EDE1" />
-                      </linearGradient>
-                      <filter id="orbit-glow-filter" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur stdDeviation="3" result="blur" />
-                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                      </filter>
-                    </defs>
-
-                    {/* Outer Dashed Orbit Background Track */}
-                    <circle
-                      cx="80"
-                      cy="80"
-                      r="66"
-                      fill="none"
-                      stroke="rgba(201, 164, 92, 0.25)"
-                      strokeWidth="1.5"
-                      strokeDasharray="4 4"
-                    />
-
-                    {/* Inner Celestial Core Guide Ring */}
-                    <circle
-                      cx="80"
-                      cy="80"
-                      r="52"
-                      fill="none"
-                      stroke="rgba(255, 255, 255, 0.08)"
-                      strokeWidth="1"
-                    />
-
-                    {/* Circular Orbit Progress Arc */}
-                    <circle
-                      cx="80"
-                      cy="80"
-                      r="60"
-                      fill="none"
-                      stroke="url(#orbit-progress-grad)"
-                      strokeWidth="5"
-                      strokeLinecap="round"
-                      strokeDasharray="377"
-                      strokeDashoffset={377 - (377 * Math.min(calcProgress, 100)) / 100}
-                      className="transition-all duration-300 ease-out"
-                      filter="url(#orbit-glow-filter)"
-                    />
-
-                    {/* Orbiting Satellite Star Node */}
-                    {(() => {
-                      const angleRad = ((calcProgress / 100) * 360 * Math.PI) / 180;
-                      const nodeX = 80 + 60 * Math.cos(angleRad);
-                      const nodeY = 80 + 60 * Math.sin(angleRad);
-                      return (
-                        <g className="transition-all duration-300 ease-out">
-                          <circle
-                            cx={nodeX}
-                            cy={nodeY}
-                            r="6.5"
-                            fill="#C2673F"
-                            stroke="#FFFFFF"
-                            strokeWidth="2"
-                          />
-                          <circle
-                            cx={nodeX}
-                            cy={nodeY}
-                            r="11"
-                            fill="none"
-                            stroke="#C9A45C"
-                            strokeWidth="1"
-                            opacity="0.8"
-                          />
-                        </g>
-                      );
-                    })()}
-                  </svg>
-
-                  {/* Center Core Information Floating Badge */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-                    <div className="p-2 rounded-2xl bg-[#172136] border border-[#C9A45C]/40 shadow-inner mb-1 flex items-center justify-center">
-                      <LoShuCanvas activeNodes={[8, 5, 2, 9]} lines={[[8, 5], [5, 2], [5, 9]]} size={32} />
-                    </div>
-                    <div className="font-serif-cormorant text-3xl font-bold text-white tracking-tight leading-none mt-1">
-                      {calcProgress}%
-                    </div>
-                    <span className="text-[9px] uppercase tracking-widest text-[#C9A45C] font-semibold mt-0.5">
-                      Orbit Selaras
+          {/* Calculator Results Display */}
+          {calcResult && (
+            <div className="space-y-10">
+              {/* Core Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 1. Life Path */}
+                <div className="p-6 rounded-3xl bg-white border border-[#1F2A44]/10 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <span className="text-[11px] uppercase font-bold text-[#C2673F] tracking-wider">
+                      Jalan Hidup Utama (Life Path)
+                    </span>
+                    <span className="w-8 h-8 rounded-full bg-[#1F2A44] text-[#C9A45C] flex items-center justify-center font-serif-cormorant font-bold text-lg">
+                      {calcResult.lifePath.number}
                     </span>
                   </div>
-                </div>
-
-                {/* Stage Narrative and Status Text */}
-                <div className="space-y-2 max-w-md mx-auto">
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-[#C9A45C]/30 text-xs font-semibold text-[#C9A45C]">
-                    <Sparkles className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '4s' }} />
-                    <span>
-                      {calcProgress < 40
-                        ? 'Menghitung Life Path Pythagoras...'
-                        : calcProgress < 75
-                        ? 'Memutar Roda Musim Diri 9 Tahun...'
-                        : calcProgress < 95
-                        ? 'Menyusun Kartu Lahir & Kisi Rasi...'
-                        : 'Menyelesaikan Peta Refleksi...'}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-[#F4EDE1]/80 leading-relaxed font-sans-dm">
-                    Menyelaraskan waktu lahir <strong>{calcDate}</strong> untuk <strong>{calcName || 'Kamu'}</strong> ke dalam siklus semesta.
-                  </p>
-
-                  {/* 4 Orbit Steps Indicator */}
-                  <div className="flex items-center justify-center gap-2 pt-1 text-[11px] font-mono">
-                    <span className={calcProgress >= 25 ? 'text-[#C9A45C] font-bold' : 'text-white/40'}>1. Angka</span>
-                    <span className="text-white/30">•</span>
-                    <span className={calcProgress >= 50 ? 'text-[#C9A45C] font-bold' : 'text-white/40'}>2. Musim</span>
-                    <span className="text-white/30">•</span>
-                    <span className={calcProgress >= 75 ? 'text-[#C9A45C] font-bold' : 'text-white/40'}>3. Tarot</span>
-                    <span className="text-white/30">•</span>
-                    <span className={calcProgress >= 95 ? 'text-[#C2673F] font-bold' : 'text-white/40'}>4. Kisi Rasi</span>
-                  </div>
-                </div>
-              </motion.div>
-            ) : calcResult ? (
-              <div className="mt-8 pt-8 border-t border-gray-100 space-y-8 animate-in fade-in duration-500">
-                {/* Result Header */}
-                <div className="p-6 rounded-2xl bg-[#1F2A44] text-[#F4EDE1] flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div>
-                    <div className="text-[10px] uppercase text-[#C9A45C] font-bold tracking-widest">
-                      Peta Diri Lintang
-                    </div>
-                    <h2 className="font-serif-cormorant text-3xl font-bold text-white">
-                      {calcResult.name} · {calcResult.birthDateStr}
-                    </h2>
-                    <p className="text-xs text-[#F4EDE1]/70">
-                      {calcResult.birthCity ? `Lahir di ${calcResult.birthCity}` : ''}
-                      {calcResult.birthTime ? ` pukul ${calcResult.birthTime}` : ''}
+                    <h3 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44]">
+                      {calcResult.lifePath.name}
+                    </h3>
+                    <p className="text-xs text-[#1F2A44]/80 mt-1 leading-relaxed">
+                      {calcResult.lifePath.coreTheme}
                     </p>
                   </div>
-
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                    <button
-                      onClick={() => generateReflectionPdf(calcResult)}
-                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-[#F4EDE1] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all border border-white/20 hover:border-[#C9A45C] cursor-pointer shadow-sm active:scale-98"
-                      title="Unduh Lembar Refleksi Editorial 1 Halaman Siap Cetak (A4 PDF)"
-                    >
-                      <FileText className="w-4 h-4 text-[#C9A45C]" />
-                      <span>Unduh Lembar PDF (A4)</span>
-                    </button>
-                    <button
-                      onClick={() => setIsShareModalOpen(true)}
-                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#C9A45C] hover:bg-[#d8b56f] text-[#1F2A44] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer active:scale-98"
-                    >
-                      <Share2 className="w-4 h-4" />
-                      <span>Buat & Unduh Kartu</span>
-                    </button>
+                  <div className="p-3 rounded-xl bg-[#F4EDE1]/50 text-xs space-y-1">
+                    <div className="font-semibold text-[#1F2A44]">Fokus Pertumbuhan:</div>
+                    <div className="text-[#1F2A44]/75 text-[11px]">{calcResult.lifePath.practicalWeeklyAction}</div>
                   </div>
                 </div>
 
-                {/* 1. LIFE PATH SUMMARY & 3D TAROT CARD FLIP */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                  {/* Left Column: Life Path Detailed Analysis */}
-                  <div className="lg:col-span-6 p-6 rounded-3xl bg-[#F4EDE1]/60 border border-[#C9A45C]/30 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] uppercase font-bold text-[#C2673F]">
-                        Numerologi Pythagoras
-                      </span>
-                      <div className="w-12 h-12 rounded-2xl bg-[#C2673F] text-white font-serif-cormorant text-2xl font-bold flex items-center justify-center shadow">
-                        {calcResult.lifePath.number}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44]">
-                        Life Path {calcResult.lifePath.number}: {calcResult.lifePath.name}
-                      </h3>
-                      <p className="font-serif-fraunces text-xs italic text-[#1F2A44]/90 bg-white/80 p-3 rounded-xl border border-gray-100 leading-relaxed mt-2">
-                        “{calcResult.lifePath.lintangReflection}”
-                      </p>
-                    </div>
-
-                    <div className="text-xs text-[#1F2A44]/80 space-y-1.5 pt-2 border-t border-gray-200">
-                      <div><strong>Kekuatan Alami:</strong> {calcResult.lifePath.strengths.join(', ')}</div>
-                      <div><strong>Ruang Bertumbuh:</strong> {calcResult.lifePath.growthAreas.join(', ')}</div>
-                    </div>
-
-                    <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950 flex items-start gap-2">
-                      <Compass className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
-                      <div>
-                        <strong>Langkah Minggu Ini:</strong> {calcResult.lifePath.practicalWeeklyAction}
-                      </div>
-                    </div>
+                {/* 2. Musim Diri */}
+                <div className="p-6 rounded-3xl bg-white border border-[#1F2A44]/10 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <span className="text-[11px] uppercase font-bold text-[#8A9A7B] tracking-wider">
+                      Musim Diri Tahun Ini
+                    </span>
+                    <span className="w-8 h-8 rounded-full bg-[#8A9A7B] text-white flex items-center justify-center font-bold text-xs">
+                      Thn {calcResult.personalYear.personalYear}
+                    </span>
                   </div>
-
-                  {/* Right Column: 3D Luxury Tarot Card */}
-                  <div className="lg:col-span-6">
-                    <TarotCard3D initialCard={calcResult.tarotCard} />
+                  <div>
+                    <h3 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44]">
+                      {calcResult.personalYear.stageName}
+                    </h3>
+                    <p className="text-xs text-[#1F2A44]/80 mt-1 leading-relaxed">
+                      {calcResult.personalYear.description}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-[#8A9A7B]/10 text-xs space-y-1">
+                    <div className="font-semibold text-[#1F2A44]">Langkah Praktis Musim Ini:</div>
+                    <div className="text-[#1F2A44]/75 text-[11px]">{calcResult.personalYear.lintangAdvice}</div>
                   </div>
                 </div>
+              </div>
 
-                {/* 2. RODA ORBIT SIKLUS 9 TAHUN INTERAKTIF */}
-                <OrbitWheel
-                  currentYearNum={calcResult.personalYear.personalYear}
-                  selectedYear={selectedOrbitYear}
-                  onSelectYear={(y) => setSelectedOrbitYear(y)}
-                />
+              {/* 3D Tarot & 9-Year Orbit Wheel */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <div className="space-y-4">
+                  <h3 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44]">
+                    Kartu Lahir Tarot (Major Arcana)
+                  </h3>
+                  <TarotCard3D initialCard={calcResult.tarotCard} />
+                </div>
+                <div className="space-y-4">
+                  <h3 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44]">
+                    Siklus 9 Tahun (Orbit Wheel)
+                  </h3>
+                  <OrbitWheel
+                    currentYearNum={calcResult.personalYear.personalYear}
+                    onSelectYear={(yr) => setSelectedOrbitYear(yr)}
+                    selectedYear={selectedOrbitYear}
+                  />
+                </div>
+              </div>
 
-                {/* 3. KISI LO SHU 3X3 INTERAKTIF DENGAN EKSPLORASI BIDANG */}
+              {/* Lo Shu Grid Explorer */}
+              <div className="space-y-4">
+                <h3 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44]">
+                  Pemetaan Kisi Lo Shu 3×3 Tanggal Lahir
+                </h3>
                 <LoShuInteractiveGrid
                   presentNumbers={calcResult.loShu.presentNumbers}
                   counts={calcResult.loShu.counts}
                 />
+              </div>
 
-                {/* PERSONALIZED UPSELL CALLOUT */}
-                <div className="p-6 rounded-2xl bg-[#1F2A44] text-[#F4EDE1] flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="text-[10px] uppercase text-[#C9A45C] font-bold">Rekomendasi Personal</div>
-                    <h3 className="font-serif-cormorant text-2xl font-bold text-white">
-                      Sebagai Life Path {calcResult.lifePath.number}, Kamu Paling Selaras Membaca:
-                    </h3>
-                    <p className="text-xs text-[#F4EDE1]/80 max-w-lg">
-                      Laporan <strong>Kode Diri</strong> (Rp149 rb) atau <strong>Lintang Utuh</strong> yang mengkaji secara spesifik jam kelahiran dan astrologi natalmu.
-                    </p>
-                  </div>
+              {/* Quick Actions to Share / Download */}
+              <div className="p-6 rounded-2xl bg-[#1F2A44] text-[#F4EDE1] flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                  <h4 className="font-serif-cormorant text-xl font-bold text-white">
+                    Simpan & Bagikan Hasil Peta Dirimu
+                  </h4>
+                  <p className="text-xs text-[#F4EDE1]/75">
+                    Buat kartu refleksi estetik ramah Instagram Story atau unduh laporan rangkuman format PDF.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={() => {
-                      const kodeDiri = SERVICES.find((s) => s.id === 'kode-diri');
-                      if (kodeDiri) setSelectedService(kodeDiri);
-                    }}
-                    className="px-5 py-2.5 rounded-xl bg-[#C2673F] hover:bg-[#d67246] text-white text-xs font-semibold shadow transition-all shrink-0"
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="px-4 py-2.5 rounded-xl bg-[#C9A45C] hover:bg-[#d8b56f] text-[#1F2A44] font-semibold text-xs transition-all shadow flex items-center gap-1.5 cursor-pointer"
                   >
-                    Pesan Laporan Penuh
+                    <Share2 className="w-4 h-4" />
+                    <span>Kartu Refleksi Medsos</span>
+                  </button>
+                  <button
+                    onClick={() => generateReflectionPdf(calcResult)}
+                    className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs transition-all border border-white/20 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4 text-[#C9A45C]" />
+                    <span>Unduh PDF</span>
                   </button>
                 </div>
               </div>
-            ) : null}
-          </motion.div>
+            </div>
+          )}
         </section>
       )}
 
-      {/* VIEW: KATALOG LAYANAN LINTANG */}
+      {/* VIEW: KATALOG LAYANAN (17 LAYANAN DENGAN TANGGA NILAI) */}
       {activeTab === 'layanan' && (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 space-y-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center space-y-2 max-w-xl mx-auto"
-          >
+          <div className="text-center space-y-2 max-w-xl mx-auto">
             <span className="text-xs uppercase tracking-widest text-[#C2673F] font-bold">
               Katalog Layanan & Pembacaan
             </span>
@@ -870,17 +833,12 @@ export default function App() {
               Pilih Pendampingan Peta Dirimu
             </h1>
             <p className="text-xs sm:text-sm text-[#1F2A44]/75">
-              Dari laporan tertulis PDF berdesain elegan hingga sesi konsultasi tatap muka 60 menit via Zoom.
+              Dari laporan terjangkau Rp49 rb hingga pendampingan holistik tatap muka via Zoom.
             </p>
-          </motion.div>
+          </div>
 
           {/* Filter Pills */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex flex-wrap items-center justify-center gap-2"
-          >
+          <div className="flex flex-wrap items-center justify-center gap-2">
             {[
               { id: 'all', label: 'Semua Layanan (12)' },
               { id: 'seri-angka', label: 'Seri Angka (Tanggal Lahir Saja)' },
@@ -891,7 +849,7 @@ export default function App() {
               <button
                 key={cat.id}
                 onClick={() => setServiceCategory(cat.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   serviceCategory === cat.id
                     ? 'bg-[#1F2A44] text-[#F4EDE1] shadow'
                     : 'bg-white text-[#1F2A44] hover:bg-gray-100 border border-gray-200'
@@ -900,31 +858,20 @@ export default function App() {
                 {cat.label}
               </button>
             ))}
-          </motion.div>
+          </div>
 
-          {/* Services Grid with Smart Matcher & Scroll Animations */}
+          {/* Services Grid with WCAG AA High-Contrast Prices */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredServices.map((service, idx) => {
-              const isMatch = calcResult && (
-                (calcResult.lifePath.number === 7 && service.id === 'peta-bintang') ||
-                (calcResult.lifePath.number === 1 && service.id === 'kode-diri') ||
-                (calcResult.lifePath.number === 8 && service.id === 'empat-pilar') ||
-                (calcResult.lifePath.number === 2 && service.id === 'dua-lintang') ||
-                service.id === 'lintang-utuh'
-              );
-
+            {filteredServices.map((service) => {
+              const isEntryDoor = service.id === 'sekilas-lintang' || service.id === 'kode-diri';
               return (
-                <motion.div
+                <div
                   key={service.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-40px' }}
-                  transition={{ duration: 0.45, delay: (idx % 3) * 0.08 }}
-                  className="bg-white rounded-3xl p-6 border border-[#1F2A44]/10 hover:border-[#C9A45C] transition-all duration-300 ease-out transform hover:scale-105 shadow-sm hover:shadow-xl hover:shadow-[#1F2A44]/10 flex flex-col justify-between space-y-4 relative hover:z-10"
+                  className="bg-white rounded-3xl p-6 border border-[#1F2A44]/10 hover:border-[#C9A45C] transition-all duration-300 shadow-sm hover:shadow-xl flex flex-col justify-between space-y-4 relative"
                 >
-                  {isMatch && (
-                    <div className="absolute -top-3 right-6 px-3 py-0.5 rounded-full bg-[#C2673F] text-white text-[10px] font-bold uppercase tracking-wider shadow">
-                      ★ Sangat Selaras Untukmu
+                  {isEntryDoor && (
+                    <div className="absolute -top-3 left-6 px-3 py-0.5 rounded-full bg-[#8A9A7B] text-white text-[10px] font-bold uppercase tracking-wider shadow">
+                      ★ Mulai Dari Sini
                     </div>
                   )}
 
@@ -968,108 +915,117 @@ export default function App() {
                   </div>
 
                   <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-                    <div className="font-serif-cormorant text-xl font-bold text-[#C2673F]">
+                    <div className="font-serif-cormorant text-xl font-bold text-[#1F2A44]">
                       {service.price}
                     </div>
                     <button
-                      onClick={() => setSelectedService(service)}
-                      className="px-4 py-2 rounded-xl bg-[#C2673F] hover:bg-[#d67246] text-white text-xs font-semibold shadow transition-all flex items-center gap-1"
+                      onClick={() => handleStartBooking(service)}
+                      className="px-4 py-2 rounded-xl bg-[#A8512C] hover:bg-[#924221] text-white text-xs font-semibold shadow transition-all flex items-center gap-1 cursor-pointer"
                     >
                       <span>Pilih Layanan</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>
         </section>
       )}
 
-      {/* VIEW: DUA LINTANG COMPATIBILITY INTERACTIVE */}
+      {/* VIEW: DUA LINTANG (PASANGAN) */}
       {activeTab === 'dua-lintang' && (
-        <motion.section
-          initial={{ opacity: 0, y: 25 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="max-w-5xl mx-auto px-4 sm:px-6 py-12"
-        >
-          <DuaLintangVisualizer onOrderService={(service) => setSelectedService(service)} />
-        </motion.section>
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+          <DuaLintangVisualizer onOrderService={(service) => handleStartBooking(service)} />
+        </section>
       )}
 
-      {/* VIEW: TENTANG & FILOSOFI LINTANG */}
+      {/* VIEW: KADO LINTANG */}
+      {activeTab === 'kado' && (
+        <KadoLintangSection
+          onOrderGift={(service) => handleStartBooking(service || SERVICES[0], true)}
+          onExploreServices={() => setActiveTab('layanan')}
+        />
+      )}
+
+      {/* VIEW: JURNAL EDUKASI */}
+      {activeTab === 'jurnal' && (
+        <JurnalSection
+          onGoToCalculator={() => setActiveTab('kalkulator')}
+          onExploreServices={() => setActiveTab('layanan')}
+        />
+      )}
+
+      {/* VIEW: TENTANG & MADAM SHARA */}
       {activeTab === 'tentang' && (
         <section className="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center space-y-2 max-w-xl mx-auto"
-          >
+          <div className="text-center space-y-2 max-w-xl mx-auto">
             <span className="text-xs uppercase tracking-widest text-[#C2673F] font-bold">
-              Filosofi & Etika
+              Filosofi & Pendiri
             </span>
             <h1 className="font-serif-cormorant text-4xl sm:text-5xl font-bold text-[#1F2A44]">
-              Tentang Lintang
+              Tentang Lintang · Studio Peta Diri
             </h1>
             <p className="text-xs sm:text-sm text-[#1F2A44]/75">
               “Lintang” berarti bintang dalam bahasa Jawa. Kami hadir sebagai teman refleksi yang cerdas, bukan peramal yang menentukan nasib.
             </p>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55 }}
-            className="bg-white rounded-3xl p-6 sm:p-10 border border-[#1F2A44]/10 shadow-sm space-y-8"
-          >
-            <div className="space-y-4">
-              <h2 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44]">
-                Misi & Visi Kami
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-[#F4EDE1] space-y-1">
-                  <div className="text-xs font-bold uppercase text-[#C2673F]">Misi</div>
-                  <p className="text-xs text-[#1F2A44] leading-relaxed">
-                    Membantu orang Indonesia mengenal diri lewat bahasa angka dan bintang, lalu menerjemahkannya menjadi langkah nyata dalam karier, relasi, dan waktu hidup.
-                  </p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#1F2A44] text-[#F4EDE1] space-y-1">
-                  <div className="text-xs font-bold uppercase text-[#C9A45C]">Visi</div>
-                  <p className="text-xs text-[#F4EDE1]/90 leading-relaxed">
-                    Menjadi studio peta diri berbahasa Indonesia yang paling dipercaya karena jujur, rapi, dan membumi.
-                  </p>
-                </div>
+          {/* Madam Shara Founder Section */}
+          <div className="bg-[#1F2A44] text-[#F4EDE1] rounded-3xl p-6 sm:p-10 border border-[#C9A45C]/40 shadow-xl flex flex-col md:flex-row items-center gap-8">
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-[#172136] border-2 border-[#C9A45C] flex items-center justify-center shrink-0 shadow-lg text-center p-3">
+              <div className="space-y-1">
+                <div className="text-xs font-serif-cormorant text-[#C9A45C] uppercase tracking-widest">Pendiri</div>
+                <div className="font-serif-cormorant text-xl font-bold text-white">Madam Shara</div>
+                <div className="text-[10px] text-[#8A9A7B]">Pembaca Peta</div>
               </div>
             </div>
-
-            <div className="space-y-4 pt-4 border-t border-gray-100">
-              <h2 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44]">
-                Empat Nilai Utama Lintang
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#C9A45C]/20 text-[#C9A45C] text-[11px] font-bold uppercase tracking-wider">
+                Wajah & Penyusun Utama
+              </div>
+              <h2 className="font-serif-cormorant text-2xl sm:text-3xl font-bold text-white">
+                Disusun & Ditinjau dengan Ketelitian Manual
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-xl border border-gray-200">
-                  <div className="font-serif-cormorant text-lg font-bold text-[#1F2A44]">1. Jujur</div>
-                  <p className="text-xs text-[#1F2A44]/80">Tidak menjanjikan jodoh atau hasil pasti; batasan setiap sistem dijelaskan secara transparan.</p>
-                </div>
-                <div className="p-3.5 rounded-xl border border-gray-200">
-                  <div className="font-serif-cormorant text-lg font-bold text-[#1F2A44]">2. Hangat</div>
-                  <p className="text-xs text-[#1F2A44]/80">Bahasa empatik seperti kakak sendiri, tidak menghakimi, dan tidak menakut-nakuti.</p>
-                </div>
-                <div className="p-3.5 rounded-xl border border-gray-200">
-                  <div className="font-serif-cormorant text-lg font-bold text-[#1F2A44]">3. Membumi</div>
-                  <p className="text-xs text-[#1F2A44]/80">Setiap laporan ditutup dengan rekomendasi praktis mingguan yang bisa langsung dicoba.</p>
-                </div>
-                <div className="p-3.5 rounded-xl border border-gray-200">
-                  <div className="font-serif-cormorant text-lg font-bold text-[#1F2A44]">4. Menjaga Privasi</div>
-                  <p className="text-xs text-[#1F2A44]/80">Data momen kelahiranmu hanya digunakan untuk penyusunan laporan dan dihapus setelahnya.</p>
-                </div>
+              <p className="text-xs text-[#F4EDE1]/85 leading-relaxed">
+                Madam Shara adalah praktisi pemetaan diri berbasis numerologi, astrologi natal, dan sistem Timur. Lintang hadir berdampingan dengan metode refleksi MIRROR™, dengan fokus khusus pada laporan komprehensif data momen kelahiran. Setiap laporan dikerjakan secara cermat tanpa automasi dangkal, memastikan pembaca merasa lebih paham dan berdaya.
+              </p>
+            </div>
+          </div>
+
+          {/* 5 Core Values */}
+          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-[#1F2A44]/10 shadow-sm space-y-6">
+            <h2 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44]">
+              Lima Nilai Integritas Lintang
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl border border-gray-200 space-y-1">
+                <div className="font-serif-cormorant text-lg font-bold text-[#1F2A44]">1. Jujur</div>
+                <div className="text-[11px] text-[#C2673F] font-semibold italic">“Bukan ramalan, tapi peta.”</div>
+                <p className="text-xs text-[#1F2A44]/80">Tidak menjanjikan jodoh atau hasil mutlak; batasan setiap sistem dijelaskan secara transparan kepada pemesan.</p>
+              </div>
+              <div className="p-4 rounded-xl border border-gray-200 space-y-1">
+                <div className="font-serif-cormorant text-lg font-bold text-[#1F2A44]">2. Hangat</div>
+                <div className="text-[11px] text-[#8A9A7B] font-semibold italic">“Seperti kakak yang paham astrologi.”</div>
+                <p className="text-xs text-[#1F2A44]/80">Bahasa empatik, tidak menghakimi, dan tidak menakut-nakuti dengan istilah tabu atau tahun sial.</p>
+              </div>
+              <div className="p-4 rounded-xl border border-gray-200 space-y-1">
+                <div className="font-serif-cormorant text-lg font-bold text-[#1F2A44]">3. Membumi</div>
+                <div className="text-[11px] text-[#C9A45C] font-semibold italic">“Rekomendasi yang bisa dicoba minggu ini.”</div>
+                <p className="text-xs text-[#1F2A44]/80">Setiap laporan ditutup dengan langkah aksi praktis yang relevan untuk karier, finansial, dan relasi.</p>
+              </div>
+              <div className="p-4 rounded-xl border border-gray-200 space-y-1">
+                <div className="font-serif-cormorant text-lg font-bold text-[#1F2A44]">4. Rapi</div>
+                <div className="text-[11px] text-[#1F2A44] font-semibold italic">“Perhitungan teliti, tata letak bersih.”</div>
+                <p className="text-xs text-[#1F2A44]/80">Perhitungan diperiksa ulang silang sebelum ditandatangani dan dikirim ke pemesan.</p>
+              </div>
+              <div className="p-4 rounded-xl border border-gray-200 space-y-1 sm:col-span-2">
+                <div className="font-serif-cormorant text-lg font-bold text-[#1F2A44]">5. Menjaga Privasi</div>
+                <div className="text-[11px] text-[#8A9A7B] font-semibold italic">“Kepatuhan penuh pada UU No. 27/2022 PDP.”</div>
+                <p className="text-xs text-[#1F2A44]/80">Data lahirmu hanya dipakai untuk laporan dan dapat kamu minta hapus kapan pun tanpa syarat rumit.</p>
               </div>
             </div>
-          </motion.div>
+          </div>
         </section>
       )}
 
@@ -1080,13 +1036,26 @@ export default function App() {
         petaDiri={calcResult}
       />
 
-      {/* BOOKING MODAL */}
+      {/* LEGAL MODAL */}
+      <LegalModal
+        isOpen={isLegalModalOpen}
+        onClose={() => setIsLegalModalOpen(false)}
+        initialDoc={legalModalDoc}
+      />
+
+      {/* FLOATING CONTEXTUAL WHATSAPP */}
+      <FloatingWhatsApp
+        activeTab={activeTab}
+        selectedServiceName={selectedService?.name}
+      />
+
+      {/* 3-STEP DYNAMIC CHECKOUT MODAL */}
       {selectedService && (
         <div
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setSelectedService(null);
-              setOrderSent(false);
+              setBookingStep(1);
             }
           }}
           className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
@@ -1097,89 +1066,142 @@ export default function App() {
             onClick={(e) => e.stopPropagation()}
             className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-xl w-full border border-[#C9A45C]/40 shadow-2xl relative my-4 sm:my-8 max-h-[92vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
           >
-            {!orderSent ? (
-              <div className="space-y-5">
-                {/* Modal Top Header Bar with Clean Single Close Button */}
-                <div className="flex items-start justify-between border-b border-gray-100 pb-3 gap-3">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-[#C2673F] tracking-widest block">
-                      Formulir Pemesanan Layanan
-                    </span>
-                    <h3 className="font-serif-cormorant text-2xl sm:text-3xl font-bold text-[#1F2A44] leading-tight">
-                      {selectedService.name}
-                    </h3>
-                    <div className="text-xs text-[#C9A45C] font-semibold">{selectedService.subtitle} · {selectedService.price}</div>
-                  </div>
+            {/* Modal Header Bar with Single Close Button */}
+            <div className="flex items-start justify-between border-b border-gray-100 pb-3 gap-3 mb-4">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-[#C2673F] tracking-widest block">
+                  Formulir Pemesanan Layanan · Langkah {bookingStep} dari 3
+                </span>
+                <h3 className="font-serif-cormorant text-2xl sm:text-3xl font-bold text-[#1F2A44] leading-tight">
+                  {selectedService.name}
+                </h3>
+                <div className="text-xs text-[#1F2A44] font-semibold">{selectedService.subtitle} · {selectedService.price}</div>
+              </div>
 
-                  <button
-                    onClick={() => {
-                      setSelectedService(null);
-                      setOrderSent(false);
-                    }}
-                    className="p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-600 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 border border-gray-200 cursor-pointer"
-                    title="Tutup (Esc)"
-                    aria-label="Tutup formulir"
-                  >
-                    <X className="w-4 h-4" />
-                    <span className="hidden sm:inline">Tutup (Esc)</span>
-                  </button>
-                </div>
+              <button
+                onClick={() => {
+                  setSelectedService(null);
+                  setBookingStep(1);
+                }}
+                className="p-1.5 rounded-xl bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-600 transition-colors shrink-0 border border-gray-200 cursor-pointer"
+                title="Tutup (Esc)"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
+            {/* STEP 1: FORMULIR DATA LAHIR DINAMIS */}
+            {bookingStep === 1 && (
+              <div className="space-y-4">
                 <p className="text-xs text-[#1F2A44]/80">{selectedService.description}</p>
 
                 <div className="space-y-3">
-                  <div className="text-xs font-bold text-[#1F2A44] uppercase">Data Kelahiran Pemesan:</div>
+                  <div className="text-xs font-bold text-[#1F2A44] uppercase">1. Data Pemesan Utama:</div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input
                       type="text"
-                      placeholder="Nama Lengkap"
+                      placeholder="Nama Lengkap (sesuai akta)"
                       value={bookingForm.name}
                       onChange={(e) => setBookingForm({ ...bookingForm, name: e.target.value })}
                       className="p-2.5 rounded-xl border border-gray-300 text-xs outline-none focus:ring-1 focus:ring-[#C2673F]"
+                      required
                     />
                     <input
                       type="date"
                       value={bookingForm.birthDate}
                       onChange={(e) => setBookingForm({ ...bookingForm, birthDate: e.target.value })}
                       className="p-2.5 rounded-xl border border-gray-300 text-xs outline-none focus:ring-1 focus:ring-[#C2673F]"
-                    />
-                    <input
-                      type="time"
-                      placeholder="Jam Lahir"
-                      value={bookingForm.birthTime}
-                      onChange={(e) => setBookingForm({ ...bookingForm, birthTime: e.target.value })}
-                      className="p-2.5 rounded-xl border border-gray-300 text-xs outline-none focus:ring-1 focus:ring-[#C2673F]"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Kota Lahir"
-                      value={bookingForm.birthCity}
-                      onChange={(e) => setBookingForm({ ...bookingForm, birthCity: e.target.value })}
-                      className="p-2.5 rounded-xl border border-gray-300 text-xs outline-none focus:ring-1 focus:ring-[#C2673F]"
+                      required
                     />
                   </div>
 
+                  {/* Seri Langit fields: Jam Lahir & Kota */}
+                  {(selectedService.category === 'seri-langit' || selectedService.id === 'lintang-utuh') && (
+                    <div className="space-y-2 pt-1">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <input
+                            type="time"
+                            disabled={bookingForm.unknownTime}
+                            value={bookingForm.birthTime}
+                            onChange={(e) => setBookingForm({ ...bookingForm, birthTime: e.target.value })}
+                            className={`w-full p-2.5 rounded-xl border text-xs outline-none ${
+                              bookingForm.unknownTime ? 'bg-gray-100 text-gray-400 border-gray-200' : 'border-gray-300 focus:ring-1 focus:ring-[#C2673F]'
+                            }`}
+                            placeholder="Jam Lahir (WIB/WITA/WIT)"
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Kota Lahir (mis. Bandung)"
+                            value={bookingForm.birthCity}
+                            onChange={(e) => setBookingForm({ ...bookingForm, birthCity: e.target.value })}
+                            className="w-full p-2.5 rounded-xl border border-gray-300 text-xs outline-none focus:ring-1 focus:ring-[#C2673F]"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Unknown Birth Time Checkbox & Disclosure */}
+                      <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs space-y-2">
+                        <label className="flex items-center gap-2 cursor-pointer font-semibold text-[#1F2A44]">
+                          <input
+                            type="checkbox"
+                            checked={bookingForm.unknownTime}
+                            onChange={(e) => setBookingForm({ ...bookingForm, unknownTime: e.target.checked })}
+                          />
+                          <span>Jam lahir tidak diketahui?</span>
+                        </label>
+                        {bookingForm.unknownTime && (
+                          <div className="space-y-1.5 text-[11px] text-amber-900 leading-relaxed border-t border-amber-200/60 pt-1.5">
+                            <p>
+                              <strong>Batasan Laporan:</strong> Karena jam lahir tidak ada, laporan akan disusun tanpa posisi Rising Sign / 12 Rumah Astrologi dan tanpa Pilar Jam BaZi. Fokus tetap mendalam pada zodiak utama dan pilar Tahun, Bulan, serta Hari.
+                            </p>
+                            <label className="flex items-center gap-2 cursor-pointer pt-1 font-medium">
+                              <input
+                                type="checkbox"
+                                checked={bookingForm.unknownTimeAcknowledged}
+                                onChange={(e) => setBookingForm({ ...bookingForm, unknownTimeAcknowledged: e.target.checked })}
+                              />
+                              <span>Saya memahami dan menyetujui batasan laporan ini.</span>
+                            </label>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Seri Relasi Data Pasangan */}
                   {selectedService.category === 'seri-relasi' && (
-                    <div className="pt-2 space-y-2">
-                      <div className="text-xs font-bold text-[#8A9A7B] uppercase">Data Orang Kedua (Pasangan):</div>
+                    <div className="p-3.5 rounded-2xl bg-[#F4EDE1] space-y-2.5">
+                      <div className="text-xs font-bold text-[#8A9A7B] uppercase">2. Data Orang Kedua (Pasangan/Partner):</div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <input
                           type="text"
-                          placeholder="Nama Pasangan"
+                          placeholder="Nama Lengkap Pasangan"
                           value={bookingForm.partnerName}
                           onChange={(e) => setBookingForm({ ...bookingForm, partnerName: e.target.value })}
-                          className="p-2.5 rounded-xl border border-gray-300 text-xs outline-none focus:ring-1 focus:ring-[#8A9A7B]"
+                          className="p-2.5 rounded-xl border border-gray-300 text-xs bg-white outline-none"
                         />
                         <input
                           type="date"
                           value={bookingForm.partnerDate}
                           onChange={(e) => setBookingForm({ ...bookingForm, partnerDate: e.target.value })}
-                          className="p-2.5 rounded-xl border border-gray-300 text-xs outline-none focus:ring-1 focus:ring-[#8A9A7B]"
+                          className="p-2.5 rounded-xl border border-gray-300 text-xs bg-white outline-none"
                         />
                       </div>
+                      <label className="flex items-center gap-2 text-xs text-[#1F2A44] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={bookingForm.partnerConsent}
+                          onChange={(e) => setBookingForm({ ...bookingForm, partnerConsent: e.target.checked })}
+                        />
+                        <span className="text-[11px]">Saya menyatakan telah mendapatkan izin dari pihak kedua untuk menyerahkan data lahirnya.</span>
+                      </label>
                     </div>
                   )}
 
+                  {/* Optional Add-ons */}
                   <div className="pt-2 border-t border-gray-100 space-y-1.5">
                     <div className="text-xs font-bold text-[#1F2A44] uppercase">Add-on Opsional:</div>
                     <label className="flex items-center gap-2 text-xs text-[#1F2A44] cursor-pointer">
@@ -1204,59 +1226,179 @@ export default function App() {
                         checked={bookingAddOns.kadoLintang}
                         onChange={(e) => setBookingAddOns({ ...bookingAddOns, kadoLintang: e.target.checked })}
                       />
-                      <span>Kado Lintang: Kemasan Hadiah + Kartu Ucapan (+Rp25 rb)</span>
+                      <span>Kado Lintang: Kemasan Hadiah Digital + Kartu Ucapan Personal (+Rp25 rb)</span>
                     </label>
                     {bookingAddOns.kadoLintang && (
                       <input
                         type="text"
-                        placeholder="Tulis pesan ucapan kado..."
+                        placeholder="Tulis ucapan personal untuk kartu kado..."
                         value={bookingForm.giftNote}
                         onChange={(e) => setBookingForm({ ...bookingForm, giftNote: e.target.value })}
-                        className="w-full p-2 rounded-xl border border-gray-300 text-xs mt-1"
+                        className="w-full p-2.5 rounded-xl border border-gray-300 text-xs mt-1"
                       />
                     )}
                   </div>
+
+                  {/* Dual Privacy Checkboxes (UU No. 27/2022 PDP) */}
+                  <div className="p-3 rounded-2xl bg-gray-50 border border-gray-200 space-y-2 text-[11px] text-[#1F2A44]">
+                    <div className="font-bold flex items-center gap-1.5 text-xs text-[#8A9A7B]">
+                      <ShieldCheck className="w-4 h-4 text-[#8A9A7B]" />
+                      <span>Kepatuhan Privasi Data (UU No. 27/2022 PDP)</span>
+                    </div>
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={bookingForm.pdpConsent}
+                        onChange={(e) => setBookingForm({ ...bookingForm, pdpConsent: e.target.checked })}
+                        className="mt-0.5"
+                      />
+                      <span>
+                        <strong>(Wajib)</strong> Saya menyetujui pemrosesan data momen kelahiran hanya untuk penyusunan laporan ini, dan data dapat saya minta hapus kapan pun.
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={bookingForm.promoConsent}
+                        onChange={(e) => setBookingForm({ ...bookingForm, promoConsent: e.target.checked })}
+                        className="mt-0.5"
+                      />
+                      <span>
+                        <strong>(Opsional)</strong> Bersedia menerima pengingat pergantian Musim Diri dan edukasi reflektif via WhatsApp.
+                      </span>
+                    </label>
+                  </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-                  <div className="text-xs text-gray-500">
-                    🔒 Privasi data dijamin aman.
+                <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-3">
+                  <div className="text-[11px] text-gray-500">
+                    Jendela revisi data 24 jam tersedia.
                   </div>
-                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                    <button
-                      onClick={() => {
-                        setSelectedService(null);
-                        setOrderSent(false);
-                      }}
-                      className="px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-600 text-xs font-semibold transition-all border border-gray-200 hover:border-rose-200 flex items-center justify-center gap-1.5"
-                    >
-                      <X className="w-4 h-4 text-rose-500" />
-                      <span>Tutup</span>
-                    </button>
-                    <button
-                      onClick={handleSendWhatsAppOrder}
-                      className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      <span>Lanjutkan Pesan via WhatsApp</span>
-                    </button>
-                  </div>
+                  <button
+                    onClick={handleProceedToSummary}
+                    className="px-6 py-2.5 rounded-xl bg-[#A8512C] hover:bg-[#924221] text-white text-xs font-semibold shadow transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Lanjut ke Ringkasan Data</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-6 space-y-4">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center">
-                  <Check className="w-6 h-6" />
+            )}
+
+            {/* STEP 2: RINGKASAN DATA & PILIH PEMBAYARAN */}
+            {bookingStep === 2 && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-[#F4EDE1] border border-[#C9A45C]/30 space-y-3">
+                  <div className="flex items-center justify-between text-xs font-bold text-[#1F2A44] border-b border-gray-200 pb-2">
+                    <span>Ringkasan Data Sebelum Pembayaran</span>
+                    <span className="font-mono text-[#C2673F]">{generatedOrderNumber}</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <div className="text-[10px] uppercase text-gray-500">Nama Pemesan:</div>
+                      <div className="font-semibold text-[#1F2A44]">{bookingForm.name}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase text-gray-500">Tanggal Lahir:</div>
+                      <div className="font-semibold text-[#C2673F]">
+                        {formatDateToIndonesian(bookingForm.birthDate)}
+                      </div>
+                    </div>
+                    {bookingForm.birthTime && !bookingForm.unknownTime && (
+                      <div>
+                        <div className="text-[10px] uppercase text-gray-500">Jam Lahir:</div>
+                        <div className="font-semibold text-[#1F2A44]">{bookingForm.birthTime}</div>
+                      </div>
+                    )}
+                    {bookingForm.birthCity && (
+                      <div>
+                        <div className="text-[10px] uppercase text-gray-500">Kota Lahir:</div>
+                        <div className="font-semibold text-[#1F2A44]">{bookingForm.birthCity}</div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900">
+                    💡 <em>Pastikan ejaan nama dan format tanggal lahir di atas sudah benar. Jika ada kesalahan, tersedia jendela koreksi 24 jam setelah pesanan masuk.</em>
+                  </div>
                 </div>
-                <h3 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44]">
-                  Pesan Terbuka di WhatsApp!
-                </h3>
-                <p className="text-xs text-[#1F2A44]/80 max-w-sm mx-auto">
-                  Draf pesan pemesanan telah disiapkan. Kirimkan pesan tersebut untuk mengonfirmasi ketersediaan slot pengerjaan bersama admin Lintang.
-                </p>
+
+                {/* Pilih Metode Pembayaran Lokal */}
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-[#1F2A44] uppercase">Pilih Metode Pembayaran Lokal:</div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'qris', label: 'QRIS', sub: 'Semua E-Wallet', icon: QrCode },
+                      { id: 'va', label: 'Virtual Account', sub: 'BCA/Mandiri/BNI', icon: CreditCard },
+                      { id: 'ewallet', label: 'E-Wallet', sub: 'GoPay/OVO/DANA', icon: Wallet },
+                    ].map((p) => {
+                      const Icon = p.icon;
+                      const isSel = bookingForm.paymentMethod === p.id;
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => setBookingForm({ ...bookingForm, paymentMethod: p.id as any })}
+                          className={`p-3 rounded-2xl border text-center cursor-pointer transition-all ${
+                            isSel ? 'border-[#C2673F] bg-[#C2673F]/10 shadow-sm' : 'border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <Icon className={`w-5 h-5 mx-auto mb-1 ${isSel ? 'text-[#C2673F]' : 'text-gray-500'}`} />
+                          <div className="text-xs font-bold text-[#1F2A44]">{p.label}</div>
+                          <div className="text-[10px] text-gray-500">{p.sub}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-3">
+                  <button
+                    onClick={() => setBookingStep(1)}
+                    className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-semibold text-gray-700 cursor-pointer"
+                  >
+                    Kembali
+                  </button>
+                  <button
+                    onClick={handleConfirmAndSendOrder}
+                    className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Konfirmasi & Buka WhatsApp</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: STATUS PESANAN SUKSES & ESTIMASI */}
+            {bookingStep === 3 && (
+              <div className="text-center py-6 space-y-4">
+                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center">
+                  <Check className="w-7 h-7" />
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-[#8A9A7B] font-mono">
+                    Nomor Pesanan: {generatedOrderNumber}
+                  </span>
+                  <h3 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44] mt-1">
+                    Pesanan Terkirim ke WhatsApp!
+                  </h3>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#F4EDE1] text-xs text-[#1F2A44]/80 max-w-sm mx-auto space-y-2 text-left">
+                  <div className="flex items-center gap-1.5 text-[#1F2A44] font-semibold">
+                    <Clock className="w-4 h-4 text-[#C9A45C]" />
+                    <span>Estimasi Pengerjaan: 2–3 Hari Kerja</span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    Setiap laporan dikerjakan dan ditinjau secara manual oleh Madam Shara. Jika ada koreksi data lahir, silakan balas chat WhatsApp dalam kurun 24 jam pertama.
+                  </p>
+                </div>
                 <button
-                  onClick={() => setSelectedService(null)}
-                  className="px-5 py-2 rounded-xl bg-[#1F2A44] text-white text-xs font-semibold"
+                  onClick={() => {
+                    setSelectedService(null);
+                    setBookingStep(1);
+                  }}
+                  className="px-6 py-2.5 rounded-xl bg-[#1F2A44] text-white text-xs font-semibold shadow cursor-pointer"
                 >
                   Selesai
                 </button>
@@ -1267,33 +1409,63 @@ export default function App() {
       )}
 
       {/* FOOTER */}
-      <motion.footer
-        initial={{ opacity: 0, y: 25 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-50px' }}
-        transition={{ duration: 0.65 }}
-        className="bg-[#1F2A44] text-[#F4EDE1] py-14 px-4 border-t border-[#C9A45C]/30 mt-16 text-center space-y-6"
-      >
-        <div className="max-w-2xl mx-auto space-y-3">
-          <div className="flex items-center justify-center gap-2">
-            <LoShuCanvas activeNodes={[8, 5, 2, 9]} lines={[[8, 5], [5, 2], [5, 9]]} size={28} />
-            <span className="font-serif-cormorant text-2xl font-bold text-white tracking-tight">lintang</span>
+      <footer className="bg-[#1F2A44] text-[#F4EDE1] py-14 px-4 border-t border-[#C9A45C]/30 mt-16 text-center space-y-6">
+        <div className="max-w-2xl mx-auto space-y-4">
+          <div className="flex flex-col items-center justify-center gap-1">
+            <div className="flex items-center gap-2">
+              <LoShuCanvas activeNodes={[8, 5, 2, 9]} lines={[[8, 5], [5, 2], [5, 9]]} size={30} />
+              <span className="font-serif-cormorant text-2xl font-bold text-white tracking-tight">lintang</span>
+            </div>
+            <span className="text-[9px] tracking-widest uppercase text-[#C9A45C]">Studio Peta Diri · oleh Madam Shara</span>
           </div>
+
           <p className="font-serif-fraunces text-base italic text-[#C9A45C]">
-            “Bukan ramalan, tapi cermin. Baca polamu, pilih langkahmu.”
+            “Bukan ramalan, tapi peta. Baca polamu, pilih langkahmu.”
           </p>
+
           <div className="text-xs text-[#F4EDE1]/70 max-w-md mx-auto leading-relaxed">
-            Studio peta diri berbasis numerologi, astrologi natal, BaZi, Human Design, dan tarot. Layanan ditujukan untuk refleksi dan pemahaman diri, bukan pengganti nasihat profesional medis, hukum, keuangan, atau psikologis.
+            Studio peta diri berbasis numerologi, astrologi natal, BaZi, Human Design, dan tarot. Layanan ditujukan untuk refleksi dan pemahaman potensi diri, bukan pengganti nasihat profesional medis, hukum, keuangan, atau psikologis.
           </div>
-          <div className="pt-4 text-xs font-mono text-[#C9A45C] flex justify-center gap-4">
+
+          {/* Legal Links Triggering Modal */}
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-[#F4EDE1]/80 pt-2 border-t border-white/10">
+            <button
+              onClick={() => openLegalModalWithDoc('disclaimer')}
+              className="hover:text-[#C9A45C] transition-colors underline cursor-pointer"
+            >
+              Disclaimer Resmi
+            </button>
+            <button
+              onClick={() => openLegalModalWithDoc('privasi')}
+              className="hover:text-[#C9A45C] transition-colors underline cursor-pointer"
+            >
+              Kebijakan Privasi (UU PDP)
+            </button>
+            <button
+              onClick={() => openLegalModalWithDoc('terms')}
+              className="hover:text-[#C9A45C] transition-colors underline cursor-pointer"
+            >
+              Syarat & Ketentuan
+            </button>
+            <button
+              onClick={() => openLegalModalWithDoc('refund')}
+              className="hover:text-[#C9A45C] transition-colors underline cursor-pointer"
+            >
+              Revisi & Refund 24 Jam
+            </button>
+          </div>
+
+          <div className="pt-2 text-xs font-mono text-[#C9A45C] flex flex-wrap justify-center gap-4">
             <span>Instagram: @lintang.petadiri</span>
             <span>Domain: lintangpetadiri.com</span>
+            <span>Cloudflare Pages: lintang.pages.dev</span>
           </div>
+
           <div className="text-[10px] text-[#F4EDE1]/40 pt-2">
             © 2026 Lintang · Studio Peta Diri. All rights reserved.
           </div>
         </div>
-      </motion.footer>
+      </footer>
     </div>
   );
 }
