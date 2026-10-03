@@ -198,14 +198,14 @@ export const ReflectionCardModal: React.FC<ReflectionCardModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md overflow-y-auto p-3 sm:p-6 flex justify-center items-start"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-preview-title"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-[#172136] text-[#F4EDE1] rounded-2xl sm:rounded-3xl p-4 sm:p-7 max-w-xl w-full border-2 border-[#C9A45C]/50 shadow-2xl relative my-3 sm:my-6 space-y-4 animate-in fade-in zoom-in-95 duration-200"
+        className="bg-[#172136] text-[#F4EDE1] rounded-2xl sm:rounded-3xl p-4 sm:p-7 max-w-xl w-full border-2 border-[#C9A45C]/50 shadow-2xl relative my-4 sm:my-8 space-y-4 animate-in fade-in zoom-in-95 duration-200"
       >
         {/* Modal Top Header Bar with Clean Single Close Button */}
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
@@ -227,10 +227,10 @@ export const ReflectionCardModal: React.FC<ReflectionCardModalProps> = ({
           </button>
         </div>
 
-        {/* Visual Shareable Card Canvas Frame - Generous top padding for oracle card aesthetic */}
+        {/* Visual Shareable Card Canvas Frame - Balanced padding */}
         <div
           ref={cardRef}
-          className="rounded-2xl px-5 pt-8 pb-6 sm:px-8 sm:pt-10 sm:pb-8 bg-[#1F2A44] border border-[#C9A45C]/50 space-y-5 sm:space-y-6 text-left relative overflow-hidden shadow-inner"
+          className="rounded-2xl p-5 sm:p-6 bg-[#1F2A44] border border-[#C9A45C]/50 space-y-5 sm:space-y-6 text-left relative overflow-hidden shadow-inner"
         >
           {/* Subtle starry background shimmer */}
           <div className="absolute top-3 right-6 w-1.5 h-1.5 rounded-full bg-[#C9A45C] animate-twinkle pointer-events-none" />

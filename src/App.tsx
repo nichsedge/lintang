@@ -40,6 +40,7 @@ import { JurnalSection } from './components/JurnalSection';
 import { LegalModal, LegalDocType } from './components/LegalModal';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { generateReflectionPdf } from './utils/pdfGenerator';
+import { SeamlessCosmicLanding } from './components/SeamlessCosmicLanding';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'beranda' | 'layanan' | 'kalkulator' | 'dua-lintang' | 'kado' | 'jurnal' | 'tentang'>('beranda');
@@ -152,6 +153,13 @@ export default function App() {
     return SERVICES.filter((s) => s.category === serviceCategory);
   }, [serviceCategory]);
 
+  const handleOpenCalculatorFromSeamless = (data?: { name?: string; birthDate?: string }) => {
+    if (data?.name) setCalcName(data.name);
+    if (data?.birthDate) setCalcDate(data.birthDate);
+    setActiveTab('kalkulator');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleStartBooking = (service: ServiceItem, isGift: boolean = false) => {
     setSelectedService(service);
     setBookingStep(1);
@@ -247,10 +255,10 @@ export default function App() {
               <span className="font-serif-cormorant text-2xl font-bold tracking-tight text-white leading-none">
                 lintang
               </span>
-              <span className="text-[9px] tracking-[0.22em] uppercase text-[#C9A45C] font-semibold block mt-0.5">
+              <span className="text-xs tracking-[0.18em] uppercase text-[#C9A45C] font-semibold block mt-0.5">
                 Studio Peta Diri
               </span>
-              <span className="text-[8px] tracking-wider text-[#F4EDE1]/60 italic block">
+              <span className="text-xs tracking-wider text-[#F4EDE1]/70 italic block">
                 oleh Madam Shara
               </span>
             </div>
@@ -375,224 +383,18 @@ export default function App() {
         )}
       </header>
 
-      {/* VIEW: BERANDA */}
+      {/* VIEW: BERANDA (TATA LETAK KOSMIS SEAMLESS & SESUAI MASTER PLAN) */}
       {activeTab === 'beranda' && (
-        <div>
-          {/* HERO SECTION */}
-          <section className="bg-[#1F2A44] text-[#F4EDE1] pt-12 pb-24 px-4 text-center relative overflow-hidden">
-            <div className="absolute top-8 right-8 sm:right-24 w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-[#F4EDE1] shadow-[0_0_50px_rgba(244,237,225,0.3)] flex items-center justify-center pointer-events-none">
-              <div className="w-18 h-18 sm:w-24 sm:h-24 rounded-full bg-[#1F2A44] -translate-x-3 -translate-y-1" />
-            </div>
-            <div className="absolute top-12 left-1/4 w-1.5 h-1.5 rounded-full bg-[#C9A45C] animate-twinkle pointer-events-none" />
-            <div className="absolute top-36 left-12 w-2 h-2 rounded-full bg-white/70 animate-twinkle-slow pointer-events-none" />
-
-            <div className="max-w-3xl mx-auto relative z-10 space-y-6">
-              {/* Status Badge + Weekly Quota Counter */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-[#C9A45C]/40 text-[#C9A45C] text-xs font-medium tracking-wider uppercase">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Studio Peta Diri · Bukan Ramalan, Tapi Peta</span>
-                </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8A9A7B]/20 border border-[#8A9A7B]/40 text-emerald-300 text-xs font-semibold">
-                  <Clock className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Slot Minggu Ini: Tersisa {weeklyQuota.remaining} dari {weeklyQuota.total} laporan</span>
-                </div>
-              </div>
-
-              {/* Rasi 8-5-2+9 Central Icon */}
-              <div className="flex justify-center">
-                <div className="p-3.5 rounded-3xl bg-[#172136] border border-[#C9A45C]/40 shadow-2xl hover:scale-105 transition-transform duration-300">
-                  <LoShuCanvas activeNodes={[8, 5, 2, 9]} lines={[[8, 5], [5, 2], [5, 9]]} size={110} />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <h1 className="font-serif-cormorant text-5xl sm:text-7xl font-bold tracking-tight text-white leading-tight">
-                  Baca polamu, pilih langkahmu.
-                </h1>
-                <p className="text-base sm:text-lg text-[#F4EDE1]/85 max-w-xl mx-auto leading-relaxed">
-                  Kenali ritme hidup, potensi bawaan lahir, dan arah karier lewat perpaduan cerdas
-                  <strong> Numerologi, Astrologi, BaZi, Human Design, dan Tarot</strong>.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                <button
-                  onClick={() => setActiveTab('kalkulator')}
-                  className="px-6 py-3.5 rounded-xl bg-[#C9A45C] hover:bg-[#d8b56f] text-[#1F2A44] font-semibold text-sm shadow-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Coba Kalkulator Gratis (Life Path + Musim Diri)</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('layanan')}
-                  className="px-6 py-3.5 rounded-xl bg-[#A8512C] hover:bg-[#924221] text-white font-semibold text-sm shadow-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
-                >
-                  <span>Lihat 4 Lini Layanan</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="pt-4 flex flex-wrap justify-center gap-6 text-xs text-[#F4EDE1]/70">
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#8A9A7B]" />
-                  <span>Bahasa Empatik & Hangat</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#8A9A7B]" />
-                  <span>Tanpa Vonis Fatalistis</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#8A9A7B]" />
-                  <span>Privasi UU No. 27/2022 Terjamin</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Bottom Horizon Curve */}
-            <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none pointer-events-none">
-              <svg viewBox="0 0 1200 60" preserveAspectRatio="none" className="w-full h-8 sm:h-12">
-                <path d="M0,20 C300,50 600,0 1200,30 L1200,60 L0,60 Z" fill="#8A9A7B" opacity="0.8" />
-                <path d="M0,35 C400,10 800,55 1200,35 L1200,60 L0,60 Z" fill="#C2673F" />
-                <path d="M0,50 C500,40 900,58 1200,50 L1200,60 L0,60 Z" fill="#F4EDE1" />
-              </svg>
-            </div>
-          </section>
-
-          {/* 3 CORE PILLARS */}
-          <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 space-y-12">
-            <div className="text-center space-y-2 max-w-xl mx-auto">
-              <span className="text-xs uppercase tracking-widest text-[#C2673F] font-bold">
-                Mengapa Memilih Lintang?
-              </span>
-              <h2 className="font-serif-cormorant text-3xl sm:text-4xl font-bold text-[#1F2A44]">
-                Bukan ramalan masa depan, melainkan peta pemahaman diri.
-              </h2>
-              <p className="text-xs sm:text-sm text-[#1F2A44]/75 leading-relaxed">
-                Kami membantu memetakan pola bawaan lahir agar kamu bisa memilih langkah hidup dengan lebih sadar dan berdaya.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                {
-                  icon: <Compass className="w-5 h-5 text-[#C2673F]" />,
-                  title: 'Sintesis 10 Sistem Pemetaan',
-                  desc: 'Menyatukan kebijaksanaan Barat (Numerologi Pythagoras, Astrologi Natal, Tarot) dan Timur (BaZi 4 Pilar, Lo Shu Grid) ke dalam narasi bahasa Indonesia yang mudah dimengerti.',
-                },
-                {
-                  icon: <Heart className="w-5 h-5 text-[#8A9A7B]" />,
-                  title: 'Suara Kakak yang Hangat',
-                  desc: 'Tidak ada istilah menakut-nakuti seperti “tahun sial” atau “kutukan karma”. Semua tantangan dipandang sebagai ruang belajar untuk pertumbuhan batinmu.',
-                },
-                {
-                  icon: <Shield className="w-5 h-5 text-[#C9A45C]" />,
-                  title: 'Membumi & Praktis',
-                  desc: 'Setiap laporan ditutup dengan “Langkah Minggu Ini”: rekomendasi konkret dan aplikatif yang bisa langsung kamu terapkan dalam karier dan relasi.',
-                },
-              ].map((pillar, idx) => (
-                <div
-                  key={idx}
-                  className="p-6 rounded-2xl bg-white border border-[#1F2A44]/10 shadow-sm space-y-3 hover:border-[#C9A45C] transition-all"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-[#F4EDE1] flex items-center justify-center">
-                    {pillar.icon}
-                  </div>
-                  <h3 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44]">
-                    {pillar.title}
-                  </h3>
-                  <p className="text-xs text-[#1F2A44]/80 leading-relaxed">
-                    {pillar.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* 3 STEPS HOW IT WORKS */}
-          <section className="bg-white py-14 border-y border-[#1F2A44]/10">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-8">
-              <div className="text-center space-y-2">
-                <span className="text-xs uppercase tracking-widest text-[#C2673F] font-bold">
-                  Alur Mudah Pemesanan
-                </span>
-                <h3 className="font-serif-cormorant text-3xl font-bold text-[#1F2A44]">
-                  Cara Kerja Lintang dalam 3 Langkah
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="p-6 rounded-2xl bg-[#F4EDE1]/50 border border-gray-200 space-y-2">
-                  <div className="text-xs font-bold text-[#C2673F] font-mono">LANGKAH 01</div>
-                  <h4 className="font-serif-cormorant text-xl font-bold text-[#1F2A44]">Pilih Layanan</h4>
-                  <p className="text-xs text-[#1F2A44]/75">
-                    Pilih lini yang sesuai kebutuhanmu: Seri Angka, Seri Langit, Seri Relasi, atau Paket Lengkap Lintang Utuh.
-                  </p>
-                </div>
-                <div className="p-6 rounded-2xl bg-[#F4EDE1]/50 border border-gray-200 space-y-2">
-                  <div className="text-xs font-bold text-[#C2673F] font-mono">LANGKAH 02</div>
-                  <h4 className="font-serif-cormorant text-xl font-bold text-[#1F2A44]">Isi Data Lahir Aman</h4>
-                  <p className="text-xs text-[#1F2A44]/75">
-                    Masukkan nama akta dan tanggal lahir. Jika jam lahir tidak diketahui, sistem otomatis menyesuaikan batasan laporan.
-                  </p>
-                </div>
-                <div className="p-6 rounded-2xl bg-[#F4EDE1]/50 border border-gray-200 space-y-2">
-                  <div className="text-xs font-bold text-[#C2673F] font-mono">LANGKAH 03</div>
-                  <h4 className="font-serif-cormorant text-xl font-bold text-[#1F2A44]">Terima Laporan PDF</h4>
-                  <p className="text-xs text-[#1F2A44]/75">
-                    Laporan dikerjakan manual oleh Madam Shara (2–3 hari kerja) dan dikirim via WhatsApp dengan garansi revisi data 24 jam.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* DUA LINTANG QUICK PROMO */}
-          <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-            <div className="bg-[#1F2A44] text-[#F4EDE1] rounded-3xl p-8 sm:p-12 border border-[#C9A45C]/40 shadow-xl flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="space-y-4 max-w-xl">
-                <div className="inline-flex items-center gap-1.5 text-xs uppercase font-bold text-[#C9A45C]">
-                  <Heart className="w-3.5 h-3.5 text-[#C2673F]" />
-                  <span>Dua Lintang · Matriks Relasi Berdua</span>
-                </div>
-                <h2 className="font-serif-cormorant text-3xl sm:text-4xl font-bold text-white leading-tight">
-                  Dua Peta, Satu Cerita.
-                </h2>
-                <p className="text-xs sm:text-sm text-[#F4EDE1]/85 leading-relaxed">
-                  Uji kecocokan dua tanggal kelahiran untuk menemukan titik sinergi alami, sumber potensi salah paham, dan bahasa komunikasi yang perlu dilatih bersama.
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={() => setActiveTab('dua-lintang')}
-                    className="px-5 py-2.5 rounded-xl bg-[#A8512C] hover:bg-[#924221] text-white text-xs font-semibold shadow transition-all flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <span>Coba Simulator Pasangan</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('kado')}
-                    className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-[#F4EDE1] text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Gift className="w-3.5 h-3.5 text-[#C9A45C]" />
-                    <span>Pesan Sebagai Kado</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-[#172136] border border-white/10 text-center flex items-center gap-3">
-                <div className="w-16 h-16 rounded-full border border-dashed border-[#C9A45C] flex items-center justify-center text-xs font-serif-cormorant">
-                  Kamu
-                </div>
-                <div className="w-10 h-10 rounded-full bg-[#C9A45C] text-[#1F2A44] flex items-center justify-center font-bold text-sm">
-                  ★
-                </div>
-                <div className="w-16 h-16 rounded-full border border-dashed border-[#8A9A7B] flex items-center justify-center text-xs font-serif-cormorant">
-                  Dia
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
+        <SeamlessCosmicLanding
+          onOpenCalculator={handleOpenCalculatorFromSeamless}
+          onNavigateToTab={(tab) => {
+            setActiveTab(tab);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onStartBooking={handleStartBooking}
+          weeklyQuota={weeklyQuota}
+          openLegalModalWithDoc={openLegalModalWithDoc}
+        />
       )}
 
       {/* VIEW: KALKULATOR PETA DIRI INTERAKTIF LENGKAP */}
@@ -1452,7 +1254,7 @@ export default function App() {
                     <Clock className="w-4 h-4 text-[#C9A45C]" />
                     <span>Estimasi Pengerjaan: 2–3 Hari Kerja</span>
                   </div>
-                  <p className="text-[11px] leading-relaxed">
+                  <p className="text-xs text-[#1F2A44]/80 leading-relaxed">
                     Setiap laporan dikerjakan dan ditinjau secara manual oleh Madam Shara. Jika ada koreksi data lahir, silakan balas chat WhatsApp dalam kurun 24 jam pertama.
                   </p>
                 </div>
@@ -1479,19 +1281,19 @@ export default function App() {
               <LoShuCanvas activeNodes={[8, 5, 2, 9]} lines={[[8, 5], [5, 2], [5, 9]]} size={30} />
               <span className="font-serif-cormorant text-2xl font-bold text-white tracking-tight">lintang</span>
             </div>
-            <span className="text-[9px] tracking-widest uppercase text-[#C9A45C]">Studio Peta Diri · oleh Madam Shara</span>
+            <span className="text-xs tracking-wider uppercase text-[#C9A45C] font-semibold">Studio Peta Diri · oleh Madam Shara</span>
           </div>
 
           <p className="font-serif-fraunces text-base italic text-[#C9A45C]">
             “Bukan ramalan, tapi peta. Baca polamu, pilih langkahmu.”
           </p>
 
-          <div className="text-xs text-[#F4EDE1]/70 max-w-md mx-auto leading-relaxed">
+          <div className="text-xs text-[#F4EDE1]/75 max-w-md mx-auto leading-relaxed">
             Studio peta diri berbasis numerologi, astrologi natal, BaZi, Human Design, dan tarot. Layanan ditujukan untuk refleksi dan pemahaman potensi diri, bukan pengganti nasihat profesional medis, hukum, keuangan, atau psikologis.
           </div>
 
           {/* Legal Links Triggering Modal */}
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-[#F4EDE1]/80 pt-2 border-t border-white/10">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-[#F4EDE1]/85 pt-2 border-t border-white/10">
             <button
               onClick={() => openLegalModalWithDoc('disclaimer')}
               className="hover:text-[#C9A45C] transition-colors underline cursor-pointer"
@@ -1524,7 +1326,7 @@ export default function App() {
             <span>Cloudflare Pages: lintang.pages.dev</span>
           </div>
 
-          <div className="text-[10px] text-[#F4EDE1]/40 pt-2">
+          <div className="text-xs text-[#F4EDE1]/50 pt-2">
             © 2026 Lintang · Studio Peta Diri. All rights reserved.
           </div>
         </div>
