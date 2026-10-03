@@ -837,6 +837,69 @@ export default function App() {
             </p>
           </div>
 
+          {/* Mulai Dari Kebutuhanmu Quick Selector (Per Master Plan Specs) */}
+          <div className="bg-[#1F2A44] text-[#F4EDE1] rounded-2xl p-4 sm:p-5 border border-[#C9A45C]/30 space-y-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+              <div className="flex items-center gap-2">
+                <Compass className="w-4 h-4 text-[#C9A45C]" />
+                <span className="text-xs font-bold uppercase tracking-wider text-white">
+                  Bingung mulai dari mana? Pilih berdasarkan kebutuhanmu:
+                </span>
+              </div>
+              <span className="text-[11px] text-[#C9A45C]">Panduan Pemula</span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              <button
+                onClick={() => setServiceCategory('seri-angka')}
+                className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                  serviceCategory === 'seri-angka' ? 'bg-[#C2673F] text-white border-white/20' : 'bg-white/5 border-white/10 hover:bg-white/10 text-[#F4EDE1]'
+                }`}
+              >
+                <div className="text-xs font-bold">🧭 Kenali Arah Diri</div>
+                <div className="text-[10px] text-white/70">Cukup tanggal lahir</div>
+              </button>
+
+              <button
+                onClick={() => setServiceCategory('seri-langit')}
+                className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                  serviceCategory === 'seri-langit' ? 'bg-[#C2673F] text-white border-white/20' : 'bg-white/5 border-white/10 hover:bg-white/10 text-[#F4EDE1]'
+                }`}
+              >
+                <div className="text-xs font-bold">🌌 Langit & Jam Lahir</div>
+                <div className="text-[10px] text-white/70">Astrologi & BaZi</div>
+              </button>
+
+              <button
+                onClick={() => setServiceCategory('seri-relasi')}
+                className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                  serviceCategory === 'seri-relasi' ? 'bg-[#C2673F] text-white border-white/20' : 'bg-white/5 border-white/10 hover:bg-white/10 text-[#F4EDE1]'
+                }`}
+              >
+                <div className="text-xs font-bold">💖 Pasangan Berdua</div>
+                <div className="text-[10px] text-white/70">Kecocokan & relasi</div>
+              </button>
+
+              <button
+                onClick={() => setServiceCategory('paket')}
+                className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                  serviceCategory === 'paket' ? 'bg-[#C2673F] text-white border-white/20' : 'bg-white/5 border-white/10 hover:bg-white/10 text-[#F4EDE1]'
+                }`}
+              >
+                <div className="text-xs font-bold">👑 Laporan Lengkap</div>
+                <div className="text-[10px] text-white/70">Sintesis & Sesi Temu</div>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('kado')}
+                className="col-span-2 sm:col-span-1 p-2.5 rounded-xl border border-[#C9A45C]/40 bg-[#C9A45C]/15 hover:bg-[#C9A45C]/25 text-[#F4EDE1] text-left transition-all cursor-pointer"
+              >
+                <div className="text-xs font-bold text-[#C9A45C]">🎁 Beri Hadiah</div>
+                <div className="text-[10px] text-white/70">Kado Lintang personal</div>
+              </button>
+            </div>
+          </div>
+
           {/* Filter Pills */}
           <div className="flex flex-wrap items-center justify-center gap-2">
             {[
