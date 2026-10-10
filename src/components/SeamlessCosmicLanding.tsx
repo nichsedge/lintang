@@ -110,24 +110,20 @@ export const SeamlessCosmicLanding: React.FC<SeamlessCosmicLandingProps> = ({
             
             {/* Kolom Kiri: Teks Tegas & Action Pair (ala Amiretha) */}
             <div className="lg:col-span-7 space-y-6">
-              {/* Badge Kredibilitas Atas */}
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#C9A45C]/50 text-[#C9A45C] text-xs font-semibold tracking-wider uppercase shadow-xs">
+              {/* Eyebrow Label */}
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-[#C9A45C]/40 text-[#A8512C] text-xs font-bold tracking-wider uppercase shadow-xs">
                   <Award className="w-3.5 h-3.5 text-[#C9A45C]" />
-                  <span>Studio Peta Diri · Madam Shara</span>
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8A9A7B]/15 border border-[#8A9A7B]/40 text-[#1F2A44] text-xs font-medium">
-                  <Clock className="w-3.5 h-3.5 text-[#8A9A7B]" />
-                  <span>Slot Minggu Ini: Tersisa {weeklyQuota.remaining} dari {weeklyQuota.total}</span>
+                  <span>Studio Peta Diri · Bukan Ramalan, Tapi Peta</span>
                 </span>
               </div>
 
               {/* Display Headline Editorial 2 Warna */}
               <div className="space-y-1">
-                <h1 className="font-sans-poppins text-3xl sm:text-5xl lg:text-[52px] font-extrabold tracking-tight uppercase leading-[1.05] text-[#1F2A44]">
+                <h1 className="font-sans-poppins text-3xl sm:text-5xl lg:text-[54px] font-extrabold tracking-tight uppercase leading-[1.02] text-[#1F2A44]">
                   BACA POLAMU,
                 </h1>
-                <h1 className="font-sans-poppins text-3xl sm:text-5xl lg:text-[52px] font-extrabold tracking-tight uppercase leading-[1.05] text-[#C2673F]">
+                <h1 className="font-sans-poppins text-3xl sm:text-5xl lg:text-[54px] font-extrabold tracking-tight uppercase leading-[1.02] text-[#C2673F]">
                   PILIH LANGKAHMU.
                 </h1>
               </div>
@@ -170,11 +166,11 @@ export const SeamlessCosmicLanding: React.FC<SeamlessCosmicLandingProps> = ({
               </div>
             </div>
 
-            {/* Kolom Kanan: Visual Card Laporan & Floating Credibility Badges */}
-            <div className="lg:col-span-5 relative">
-              <div className="relative mx-auto max-w-sm sm:max-w-md">
+            {/* Kolom Kanan: Visual Card Laporan Rapi Bersih (Tanpa Popup Mengganggu) */}
+            <div className="lg:col-span-5">
+              <div className="mx-auto max-w-sm sm:max-w-md">
                 {/* Main Card: Editorial Showcase ala Cover Dokumen Lintang */}
-                <div className="bg-white rounded-3xl border border-[#1F2A44]/12 p-6 sm:p-8 shadow-xl relative z-10 space-y-6">
+                <div className="bg-white rounded-3xl border border-[#1F2A44]/12 p-6 sm:p-8 shadow-lg space-y-6">
                   {/* Header Laporan */}
                   <div className="flex items-center justify-between border-b border-gray-100 pb-4">
                     <div className="flex items-center gap-3">
@@ -241,28 +237,6 @@ export const SeamlessCosmicLanding: React.FC<SeamlessCosmicLandingProps> = ({
                     <span>Pesan Laporan Lintang Utuh (Rp199.000)</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
-                </div>
-
-                {/* Floating Badge 1: Lo Shu Grid */}
-                <div className="absolute -top-4 -left-4 sm:-left-6 bg-white border border-[#1F2A44]/10 shadow-lg rounded-2xl p-3 flex items-center gap-2.5 z-20 animate-none">
-                  <div className="w-8 h-8 rounded-lg bg-[#FAF8F2] border border-[#C9A45C]/40 flex items-center justify-center font-serif text-sm font-bold text-[#A8512C]">
-                    3×3
-                  </div>
-                  <div className="text-left">
-                    <div className="text-[11px] font-bold text-[#1F2A44]">Lo Shu 8-5-2</div>
-                    <div className="text-[9px] text-[#1F2A44]/60">Matriks Kisi Bawaan</div>
-                  </div>
-                </div>
-
-                {/* Floating Badge 2: Pythagorean Numerology */}
-                <div className="absolute -bottom-4 -right-4 sm:-right-6 bg-white border border-[#1F2A44]/10 shadow-lg rounded-2xl p-3 flex items-center gap-2.5 z-20">
-                  <div className="w-8 h-8 rounded-lg bg-[#FAF8F2] border border-[#C9A45C]/40 flex items-center justify-center font-serif text-sm font-bold text-[#C9A45C]">
-                    1–9
-                  </div>
-                  <div className="text-left">
-                    <div className="text-[11px] font-bold text-[#1F2A44]">Pythagoras</div>
-                    <div className="text-[9px] text-[#1F2A44]/60">Siklus 9 Musim Diri</div>
-                  </div>
                 </div>
               </div>
             </div>
