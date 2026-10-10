@@ -240,93 +240,63 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F4EDE1] text-[#1F2A44] font-sans-dm selection:bg-[#C2673F]/20">
-      {/* STICKY HEADER */}
-      <header className="sticky top-0 z-40 bg-[#1F2A44]/95 backdrop-blur-md border-b border-[#C9A45C]/20 text-[#F4EDE1]">
+      {/* STICKY HEADER (AMIRETHA EDITORIAL STYLE: CRISP LIGHT NAVBAR) */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#1F2A44]/10 text-[#1F2A44] transition-all">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
           {/* Brand Logo & Descriptor */}
           <div
             onClick={() => setActiveTab('beranda')}
-            className="flex items-center gap-3 cursor-pointer group"
+            className="flex items-center gap-3.5 cursor-pointer group"
           >
-            <div className="w-10 h-10 rounded-xl bg-[#172136] border border-[#C9A45C]/40 flex items-center justify-center p-1 group-hover:border-[#C9A45C] transition-all shadow-md">
-              <LoShuCanvas activeNodes={[8, 5, 2, 9]} lines={[[8, 5], [5, 2], [5, 9]]} size={30} />
+            <div className="w-10 h-10 rounded-xl bg-[#1F2A44] flex items-center justify-center p-1.5 shadow-xs group-hover:scale-105 transition-transform">
+              <LoShuCanvas activeNodes={[8, 5, 2, 9]} lines={[[8, 5], [5, 2], [5, 9]]} size={28} theme="dark" />
             </div>
-            <div>
-              <span className="font-serif-cormorant text-2xl font-bold tracking-tight text-white leading-none">
-                lintang
+            <div className="flex flex-col text-left">
+              <span className="font-sans-poppins text-xl font-extrabold tracking-tight text-[#1F2A44] leading-tight group-hover:text-[#A8512C] transition-colors">
+                Lintang
               </span>
-              <span className="text-xs tracking-[0.18em] uppercase text-[#C9A45C] font-semibold block mt-0.5">
+              <span className="text-[10px] tracking-[0.2em] uppercase text-[#A8512C] font-bold">
                 Studio Peta Diri
-              </span>
-              <span className="text-xs tracking-wider text-[#F4EDE1]/70 italic block">
-                oleh Madam Shara
               </span>
             </div>
           </div>
 
-          {/* Desktop Navigation (5 Core Items + Home) */}
-          <nav className="hidden lg:flex items-center gap-1 text-xs font-medium">
-            <button
-              onClick={() => setActiveTab('beranda')}
-              className={`px-3 py-2 rounded-lg transition-all ${
-                activeTab === 'beranda' ? 'bg-[#A8512C] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              Beranda
-            </button>
-            <button
-              onClick={() => setActiveTab('layanan')}
-              className={`px-3 py-2 rounded-lg transition-all ${
-                activeTab === 'layanan' ? 'bg-[#A8512C] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              Layanan (Katalog)
-            </button>
-            <button
-              onClick={() => setActiveTab('kalkulator')}
-              className={`px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 ${
-                activeTab === 'kalkulator' ? 'bg-[#A8512C] text-white shadow-sm' : 'text-[#C9A45C] font-bold hover:bg-white/5'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#C9A45C]" />
-              <span>Kalkulator Gratis</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('kado')}
-              className={`px-3 py-2 rounded-lg transition-all flex items-center gap-1 ${
-                activeTab === 'kado' ? 'bg-[#A8512C] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Gift className="w-3.5 h-3.5 text-[#C9A45C]" />
-              <span>Kado Lintang</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('jurnal')}
-              className={`px-3 py-2 rounded-lg transition-all flex items-center gap-1 ${
-                activeTab === 'jurnal' ? 'bg-[#A8512C] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5 text-[#C9A45C]" />
-              <span>Jurnal</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('tentang')}
-              className={`px-3 py-2 rounded-lg transition-all ${
-                activeTab === 'tentang' ? 'bg-[#A8512C] text-white shadow-sm' : 'text-[#F4EDE1]/85 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              Tentang
-            </button>
+          {/* Desktop Navigation (Clean Minimalist Links with Underline Active State) */}
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium">
+            {[
+              { id: 'beranda', label: 'Beranda' },
+              { id: 'layanan', label: 'Layanan' },
+              { id: 'kalkulator', label: 'Kalkulator Gratis' },
+              { id: 'kado', label: 'Kado Lintang' },
+              { id: 'jurnal', label: 'Jurnal' },
+              { id: 'tentang', label: 'Tentang Kami' },
+            ].map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`relative py-2 text-sm font-semibold transition-colors cursor-pointer ${
+                    isActive ? 'text-[#1F2A44]' : 'text-[#1F2A44]/65 hover:text-[#A8512C]'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#A8512C] rounded-full" />
+                  )}
+                </button>
+              );
+            })}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {calcResult && (
               <button
                 onClick={() => setIsShareModalOpen(true)}
-                className="hidden sm:flex px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[#F4EDE1] text-xs font-medium items-center gap-1.5 transition-all"
+                className="hidden sm:flex px-3 py-1.5 rounded-full bg-[#FAF8F2] hover:bg-[#F4EDE1] border border-[#1F2A44]/15 text-[#1F2A44] text-xs font-semibold items-center gap-1.5 transition-all shadow-2xs"
                 title="Bagikan Kartu Refleksi"
               >
-                <Share2 className="w-3.5 h-3.5 text-[#C9A45C]" />
+                <Share2 className="w-3.5 h-3.5 text-[#A8512C]" />
                 <span>Kartu Refleksi</span>
               </button>
             )}
@@ -335,9 +305,9 @@ export default function App() {
                 setActiveTab('kalkulator');
                 setMobileMenuOpen(false);
               }}
-              className="px-3 sm:px-4 py-2 rounded-xl bg-[#C9A45C] hover:bg-[#d8b56f] text-[#1F2A44] text-xs font-semibold shadow transition-all flex items-center gap-1.5 active:scale-95"
+              className="px-4 py-2 rounded-full bg-[#1F2A44] hover:bg-[#151D2F] text-white text-xs font-semibold shadow-xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <Sparkles className="w-3.5 h-3.5 text-[#C9A45C]" />
               <span className="hidden sm:inline">Coba Kalkulator</span>
               <span className="sm:hidden">Kalkulator</span>
             </button>
@@ -345,28 +315,28 @@ export default function App() {
             {/* Mobile Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+              className="lg:hidden p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#1F2A44] transition-colors cursor-pointer"
               aria-label={mobileMenuOpen ? 'Tutup menu' : 'Buka menu'}
             >
-              {mobileMenuOpen ? <X className="w-5 h-5 text-[#C9A45C]" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-5 h-5 text-[#A8512C]" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
         {/* Mobile Navigation Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-[#182238] border-b border-[#C9A45C]/30 px-4 pt-3 pb-5 space-y-2 animate-in slide-in-from-top-2 duration-200 shadow-2xl">
-            <div className="text-[10px] uppercase font-bold tracking-widest text-[#C9A45C] px-2 mb-1">
+          <div className="lg:hidden bg-white border-b border-[#1F2A44]/10 px-4 pt-3 pb-5 space-y-2 animate-in slide-in-from-top-2 duration-200 shadow-xl">
+            <div className="text-[10px] uppercase font-bold tracking-widest text-[#A8512C] px-2 mb-1">
               Navigasi Halaman
             </div>
             <div className="grid grid-cols-1 gap-1">
               {[
                 { id: 'beranda', label: 'Beranda' },
                 { id: 'layanan', label: 'Layanan & Pembacaan' },
-                { id: 'kalkulator', label: 'Kalkulator Gratis (Lead Magnet)' },
-                { id: 'kado', label: 'Kado Lintang (Pesan Untuk Orang Lain)' },
+                { id: 'kalkulator', label: 'Kalkulator Gratis' },
+                { id: 'kado', label: 'Kado Lintang' },
                 { id: 'jurnal', label: 'Jurnal & Catatan Edukasi' },
-                { id: 'tentang', label: 'Tentang & Profil Madam Shara' },
+                { id: 'tentang', label: 'Tentang Kami' },
               ].map((item) => (
                 <button
                   key={item.id}
@@ -1273,61 +1243,85 @@ export default function App() {
         </div>
       )}
 
-      {/* FOOTER */}
-      <footer className="bg-[#1F2A44] text-[#F4EDE1] py-14 px-4 border-t border-[#C9A45C]/30 mt-16 text-center space-y-6">
-        <div className="max-w-2xl mx-auto space-y-4">
-          <div className="flex flex-col items-center justify-center gap-1">
-            <div className="flex items-center gap-2">
-              <LoShuCanvas activeNodes={[8, 5, 2, 9]} lines={[[8, 5], [5, 2], [5, 9]]} size={30} />
-              <span className="font-serif-cormorant text-2xl font-bold text-white tracking-tight">lintang</span>
+      {/* FOOTER (AMIRETHA EDITORIAL STYLE: BADGE LOGO-MARK & MULTI-COLUMN) */}
+      <footer className="relative bg-white text-[#1F2A44] border-t border-[#1F2A44]/10 pt-16 pb-12 mt-20">
+        {/* Floating Top Badge Mark on Center Border */}
+        <div className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 rounded-2xl bg-[#1F2A44] border-4 border-[#FAF8F2] flex items-center justify-center p-2 shadow-md">
+          <LoShuCanvas activeNodes={[8, 5, 2, 9]} lines={[[8, 5], [5, 2], [5, 9]]} size={32} theme="dark" />
+        </div>
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          {/* Header Bar */}
+          <div className="text-center space-y-2 pt-2">
+            <h2 className="font-sans-poppins text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1F2A44]">
+              Lintang Studio Peta Diri
+            </h2>
+            <p className="font-serif-cormorant text-lg italic text-[#A8512C]">
+              “Peta, bukan ramalan · Baca polamu, pilih langkahmu”
+            </p>
+          </div>
+
+          {/* Multi-column Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 text-xs text-[#1F2A44]/80 border-t border-[#1F2A44]/10 pt-8">
+            <div className="md:col-span-5 space-y-3">
+              <h4 className="font-sans-poppins font-bold text-sm text-[#1F2A44]">Tentang Studio</h4>
+              <p className="leading-relaxed">
+                Lintang Studio Peta Diri berfokus pada pengembangan ekosistem refleksi hidup melalui integrasi numerologi Pythagoras, astrologi natal, BaZi, dan tarot. Kami menghadirkan pembacaan yang terstruktur, hangat, dan patuh pada prinsip etika konseling.
+              </p>
+              <div className="text-[#A8512C] font-semibold">
+                Kurasi & Pembacaan Manual oleh Madam Shara
+              </div>
             </div>
-            <span className="text-xs tracking-wider uppercase text-[#C9A45C] font-semibold">Studio Peta Diri · oleh Madam Shara</span>
+
+            <div className="md:col-span-4 space-y-3">
+              <h4 className="font-sans-poppins font-bold text-sm text-[#1F2A44]">Kontak & Alamat</h4>
+              <div className="space-y-2">
+                <div>WhatsApp: <strong className="text-[#1F2A44]">+62 812-3456-7890</strong></div>
+                <div>Email: <strong className="text-[#1F2A44]">halo@lintangpetadiri.com</strong></div>
+                <div>Lokasi: Yogyakarta & Jakarta, Indonesia</div>
+              </div>
+            </div>
+
+            <div className="md:col-span-3 space-y-3">
+              <h4 className="font-sans-poppins font-bold text-sm text-[#1F2A44]">Ketentuan & Kebijakan</h4>
+              <div className="flex flex-col space-y-1.5 text-xs">
+                <button
+                  onClick={() => openLegalModalWithDoc('disclaimer')}
+                  className="text-left hover:text-[#A8512C] transition-colors cursor-pointer"
+                >
+                  • Disclaimer Resmi
+                </button>
+                <button
+                  onClick={() => openLegalModalWithDoc('privasi')}
+                  className="text-left hover:text-[#A8512C] transition-colors cursor-pointer"
+                >
+                  • Kebijakan Privasi (UU No. 27/2022 PDP)
+                </button>
+                <button
+                  onClick={() => openLegalModalWithDoc('terms')}
+                  className="text-left hover:text-[#A8512C] transition-colors cursor-pointer"
+                >
+                  • Syarat & Ketentuan Layanan
+                </button>
+                <button
+                  onClick={() => openLegalModalWithDoc('refund')}
+                  className="text-left hover:text-[#A8512C] transition-colors cursor-pointer"
+                >
+                  • Garansi Koreksi Data 24 Jam
+                </button>
+              </div>
+            </div>
           </div>
 
-          <p className="font-serif-fraunces text-base italic text-[#C9A45C]">
-            “Bukan ramalan, tapi peta. Baca polamu, pilih langkahmu.”
-          </p>
-
-          <div className="text-xs text-[#F4EDE1]/75 max-w-md mx-auto leading-relaxed">
-            Studio peta diri berbasis numerologi, astrologi natal, BaZi, Human Design, dan tarot. Layanan ditujukan untuk refleksi dan pemahaman potensi diri, bukan pengganti nasihat profesional medis, hukum, keuangan, atau psikologis.
-          </div>
-
-          {/* Legal Links Triggering Modal */}
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-[#F4EDE1]/85 pt-2 border-t border-white/10">
-            <button
-              onClick={() => openLegalModalWithDoc('disclaimer')}
-              className="hover:text-[#C9A45C] transition-colors underline cursor-pointer"
-            >
-              Disclaimer Resmi
-            </button>
-            <button
-              onClick={() => openLegalModalWithDoc('privasi')}
-              className="hover:text-[#C9A45C] transition-colors underline cursor-pointer"
-            >
-              Kebijakan Privasi (UU PDP)
-            </button>
-            <button
-              onClick={() => openLegalModalWithDoc('terms')}
-              className="hover:text-[#C9A45C] transition-colors underline cursor-pointer"
-            >
-              Syarat & Ketentuan
-            </button>
-            <button
-              onClick={() => openLegalModalWithDoc('refund')}
-              className="hover:text-[#C9A45C] transition-colors underline cursor-pointer"
-            >
-              Revisi & Refund 24 Jam
-            </button>
-          </div>
-
-          <div className="pt-2 text-xs font-mono text-[#C9A45C] flex flex-wrap justify-center gap-4">
-            <span>Instagram: @lintang.petadiri</span>
-            <span>Domain: lintangpetadiri.com</span>
-            <span>Cloudflare Pages: lintang.pages.dev</span>
-          </div>
-
-          <div className="text-xs text-[#F4EDE1]/50 pt-2">
-            © 2026 Lintang · Studio Peta Diri. All rights reserved.
+          {/* Bottom Copyright */}
+          <div className="border-t border-[#1F2A44]/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#1F2A44]/60">
+            <div>
+              © 2026 Lintang Studio Peta Diri. Seluruh hak cipta dilindungi.
+            </div>
+            <div className="font-mono text-[#A8512C] flex gap-4">
+              <span>lintangpetadiri.com</span>
+              <span>lintang.pages.dev</span>
+            </div>
           </div>
         </div>
       </footer>

@@ -1,18 +1,24 @@
 import React, { useState } from 'react';
 import {
-  Sparkles,
   ArrowRight,
-  Compass,
   Clock,
   ShieldCheck,
-  Heart,
   ChevronRight,
+  BookOpen,
+  Send,
+  MessageCircle,
+  Mail,
+  MapPin,
+  Building2,
+  FileCheck2,
+  HelpCircle,
+  Plus,
+  Minus,
+  Sparkles,
+  Award,
   Layers,
-  CheckCircle2,
-  Calendar,
-  Lock,
-  Moon,
-  Gift
+  Heart,
+  CheckCircle2
 } from 'lucide-react';
 import { LoShuCanvas } from './LoShuCanvas';
 import { SERVICES, ServiceItem, CORE_VALUES } from '../data/blueprintData';
@@ -33,736 +39,764 @@ export const SeamlessCosmicLanding: React.FC<SeamlessCosmicLandingProps> = ({
   weeklyQuota,
   openLegalModalWithDoc,
 }) => {
-  // Slide selector for sample report showcase
-  const [selectedSlide, setSelectedSlide] = useState(0);
+  // Quick contact form state
+  const [contactName, setContactName] = useState('');
+  const [contactBirthDate, setContactBirthDate] = useState('');
+  const [contactService, setContactService] = useState('Lintang Utuh (Sintesis 10 Sistem)');
+  const [contactMessage, setContactMessage] = useState('');
 
-  // Quick client-side input
-  const [quickName, setQuickName] = useState('');
-  const [quickBirthDate, setQuickBirthDate] = useState('');
+  // FAQ Accordion State
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  const reportSlides = [
-    {
-      id: 'lintang-utuh',
-      title: 'Laporan Lintang Utuh',
-      subtitle: 'Sintesis Komprehensif Lintas Sistem · 28 Halaman PDF Resolusi Tinggi',
-      badge: 'Laporan Utama',
-      bullets: [
-        '5 Angka Inti Pythagoras (Life Path, Soul Urge, Birthday, Expression, Personality)',
-        'Rasi Lo Shu 8–5–2+9 & Garis Kekuatan Karakter Bawaan',
-        'Peta Zodiak & Astrologi Natal Terstruktur',
-        'Rekomendasi Aksi Konkret "Langkah Minggu Ini"',
-      ],
-      price: 'Rp199.000',
-    },
-    {
-      id: 'sekilas-lintang',
-      title: 'Sekilas Lintang',
-      subtitle: 'Pintu Masuk Terjangkau · Intisari Pola Diri Praktis',
-      badge: 'Mulai Dari Sini',
-      bullets: [
-        'Life Path & Esensi Karakter Bawaan Lahir',
-        'Siklus Musim Diri Tahun Berjalan (1–9)',
-        'Analisis Cepat Format PDF Ringkas Siap Baca',
-        'Paling Cocok untuk Pembeli Pertama',
-      ],
-      price: 'Rp49.000',
-    },
-    {
-      id: 'dua-lintang',
-      title: 'Dua Lintang (Relasi)',
-      subtitle: 'Matriks Dinamika Pasangan & Partner Hidup',
-      badge: 'Seri Relasi',
-      bullets: [
-        'Titik Temu Frekuensi Dua Tanggal Kelahiran',
-        'Pemicu Friksi & Panduan Bahasa Komunikasi Sehat',
-        'Kesesuaian Ritme Musim Diri Berdua',
-        'Pernyataan Izin Orang Kedua Terproteksi (UU PDP)',
-      ],
-      price: 'Rp149.000',
-    },
-  ];
+  const toggleFaq = (idx: number) => {
+    setOpenFaq(openFaq === idx ? null : idx);
+  };
 
-  const testimonials = [
-    {
-      name: 'Alya K.',
-      role: 'Product Designer, 27 thn (Jakarta)',
-      text: '“Bahasanya hangat dan membumi, seperti diajak berdialog dengan kakak yang bijak. Tidak ada kata-kata nakut-nakutin seperti ‘tahun sial’. Rekomendasi langkah mingguannya sangat aplikatif untuk transisi karierku.”',
-      service: 'Lintang Utuh',
-    },
-    {
-      name: 'Bimo Wicaksono',
-      role: 'Software Architect, 31 thn (Bandung)',
-      text: '“Sebagai orang yang skeptis terhadap ramalan deterministik, pendekatan Lintang yang memosisikan ini sebagai peta navigasi sangat masuk akal. Analisis kisi Lo Shu 8-5-2 memotret ritme kerjaku secara presisi.”',
-      service: 'Kode Diri + Kisi Sembilan',
-    },
-    {
-      name: 'Dian & Satria',
-      role: 'Pasangan Menikah 3 Tahun (Surabaya)',
-      text: '“Laporan Dua Lintang membantu kami memahami akar gesekan kecil dalam rumah tangga. Ternyata ritme musim kami sedang di frekuensi berbeda. Sekarang kami jauh lebih berempati satu sama lain.”',
-      service: 'Dua Lintang',
-    },
-  ];
-
-  const handleQuickSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!quickBirthDate) {
-      alert('Mohon pilih tanggal lahir terlebih dahulu.');
-      return;
-    }
-    onOpenCalculator({ name: quickName || 'Teman Lintang', birthDate: quickBirthDate });
+    let text = `Halo Madam Shara & Tim Lintang! 🌿\n\nSaya ingin berkonsultasi mengenai pemetaan peta diri:\n`;
+    if (contactName) text += `• Nama: ${contactName}\n`;
+    if (contactBirthDate) text += `• Tanggal Lahir: ${contactBirthDate}\n`;
+    text += `• Kebutuhan Layanan: ${contactService}\n`;
+    if (contactMessage) text += `• Catatan / Pertanyaan: ${contactMessage}\n`;
+    text += `\nMohon informasi ketersediaan slot pengerjaan minggu ini. Terima kasih!`;
+
+    window.open(`https://wa.me/6281234567890?text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  const handleOrderSlide = (serviceId: string) => {
-    const service = SERVICES.find((item) => item.id === serviceId);
-    if (service) {
-      onStartBooking(service);
-    } else {
-      onNavigateToTab('layanan');
+  const faqs = [
+    {
+      q: 'Apakah pembacaan Lintang Studio bersifat ramalan masa depan?',
+      a: 'Bukan ramalan. Posisi Lintang adalah "Peta, bukan ramalan". Kami memetakan pola bawaan lahir, potensi alami, serta ritme musim diri agar Anda dapat mengambil keputusan dengan lebih berdaya, terarah, dan tanpa kecemasan deterministik.'
+    },
+    {
+      q: 'Bagaimana jika saya tidak tahu jam lahir secara pasti?',
+      a: 'Tidak masalah. Untuk analisis numerologi Pythagoras (5 angka inti & tahun personal) dan rasi Lo Shu, jam lahir tidak diperlukan. Untuk astrologi natal dan BaZi, kami akan memetakan konfigurasi planet hari kelahiran tanpa penarikan garis derajat Ascendant semu, tetap transparan dan akurat.'
+    },
+    {
+      q: 'Bagaimana jaminan keamanan data lahir pribadi saya (UU PDP)?',
+      a: 'Kami menjamin kepatuhan penuh terhadap UU No. 27/2022 tentang Perlindungan Data Pribadi (UU PDP). Data kelahiran Anda hanya diproses untuk penyusunan laporan personal oleh Madam Shara dan tidak pernah dibagikan ke pihak ketiga atau disimpan permanen di basis data publik.'
+    },
+    {
+      q: 'Berapa lama estimasi pengerjaan dan bagaimana format laporannya?',
+      a: 'Laporan disusun dan ditinjau secara manual oleh Madam Shara dalam kurun 2–3 hari kerja. Format yang diterima berupa dokumen PDF resolusi tinggi (siap baca di smartphone atau dicetak) yang dikirimkan langsung melalui WhatsApp Anda.'
+    },
+    {
+      q: 'Apakah ada garansi koreksi jika terjadi salah input data tanggal lahir?',
+      a: 'Ya. Lintang menyediakan garansi penyesuaian data lahir gratis dalam 24 jam pertama setelah pemesanan dikonfirmasi jika ada kekeliruan ketik pada tanggal atau nama.'
     }
-  };
+  ];
+
+  const audienceChips = [
+    'Profesional & Karier',
+    'Individu Transisi Hidup',
+    'Pasangan & Pranikah',
+    'Orang Tua & Anak',
+    'Wirausahawan',
+    'Akademisi & Peneliti',
+    'Kreator Konten',
+    'Pencari Makna Diri',
+    'Komunitas Bertumbuh'
+  ];
 
   return (
-    <div className="w-full bg-[#F4EDE1] text-[#1F2A44] font-sans-dm selection:bg-[#C2673F]/20">
+    <div className="w-full bg-[#FAF8F2] text-[#1F2A44] font-sans-dm selection:bg-[#C2673F]/20">
       {/* ============================================================== */}
-      {/* 1. HERO SECTION (DEEP BIRU MALAM · CRAFTED CELESTIAL CANVAS) */}
+      {/* 1. HERO SECTION (AMIRETHA EDITORIAL STYLE: CLEAN LIGHT HERO)   */}
       {/* ============================================================== */}
-      <section className="relative bg-[#1F2A44] text-[#F4EDE1] pt-14 pb-20 px-4 sm:px-6 lg:px-8 border-b border-[#C9A45C]/30 overflow-hidden">
-        {/* Subtle celestial constellation lines & coordinate grid */}
-        <div className="absolute inset-0 pointer-events-none opacity-20">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="celestial-grid" width="80" height="80" patternUnits="userSpaceOnUse">
-                <path d="M 80 0 L 0 0 0 80" fill="none" stroke="#C9A45C" strokeWidth="0.5" strokeDasharray="3 3" />
-                <circle cx="80" cy="80" r="1.5" fill="#C9A45C" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#celestial-grid)" />
-            <circle cx="85%" cy="20%" r="220" fill="none" stroke="#C9A45C" strokeWidth="0.75" strokeDasharray="6 8" />
-            <circle cx="15%" cy="80%" r="180" fill="none" stroke="#8A9A7B" strokeWidth="0.75" strokeDasharray="4 6" />
-          </svg>
-        </div>
+      <section className="relative bg-gradient-to-b from-[#F4EDE1]/90 via-[#FAF8F2] to-[#FAF8F2] pt-12 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 border-b border-[#105237]/10 overflow-hidden">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+            
+            {/* Kolom Kiri: Teks Tegas & Action Pair (ala Amiretha) */}
+            <div className="lg:col-span-7 space-y-6">
+              {/* Badge Kredibilitas Atas */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#C9A45C]/50 text-[#C9A45C] text-xs font-semibold tracking-wider uppercase shadow-xs">
+                  <Award className="w-3.5 h-3.5 text-[#C9A45C]" />
+                  <span>Studio Peta Diri · Madam Shara</span>
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8A9A7B]/15 border border-[#8A9A7B]/40 text-[#1F2A44] text-xs font-medium">
+                  <Clock className="w-3.5 h-3.5 text-[#8A9A7B]" />
+                  <span>Slot Minggu Ini: Tersisa {weeklyQuota.remaining} dari {weeklyQuota.total}</span>
+                </span>
+              </div>
 
-        <div className="relative max-w-4xl mx-auto text-center space-y-8 z-10">
-          {/* Header Metadata Chips */}
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-[#C9A45C]/40 text-[#C9A45C] text-xs font-semibold tracking-wider uppercase backdrop-blur-sm">
-              <span>Studio Peta Diri · Bukan Ramalan, Tapi Peta</span>
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#8A9A7B]/20 border border-[#8A9A7B]/40 text-emerald-300 text-xs font-semibold backdrop-blur-sm">
-              <Clock className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Slot Minggu Ini: Tersisa {weeklyQuota.remaining} dari {weeklyQuota.total} laporan</span>
-            </span>
-          </div>
+              {/* Display Headline Editorial 2 Warna */}
+              <div className="space-y-1">
+                <h1 className="font-sans-poppins text-3xl sm:text-5xl lg:text-[52px] font-extrabold tracking-tight uppercase leading-[1.05] text-[#1F2A44]">
+                  BACA POLAMU,
+                </h1>
+                <h1 className="font-sans-poppins text-3xl sm:text-5xl lg:text-[52px] font-extrabold tracking-tight uppercase leading-[1.05] text-[#C2673F]">
+                  PILIH LANGKAHMU.
+                </h1>
+              </div>
 
-          {/* Rasi 8-5-2+9 Brand Crest */}
-          <div className="flex flex-col items-center justify-center">
-            <div
-              onClick={() => onOpenCalculator()}
-              className="p-4 rounded-2xl bg-[#172136] border border-[#C9A45C]/40 shadow-xl hover:border-[#C9A45C] transition-colors cursor-pointer group"
-              title="Buka Kalkulator Lo Shu"
-            >
-              <LoShuCanvas activeNodes={[8, 5, 2, 9]} lines={[[8, 5], [5, 2], [5, 9]]} size={110} theme="dark" />
-              <div className="mt-2 text-center">
-                <span className="px-3 py-1 rounded-md bg-[#A8512C] text-xs text-white tracking-widest uppercase font-semibold">
-                  Rasi 8–5–2+9
+              {/* Sub-headline Deskriptif & Lugas */}
+              <p className="text-base sm:text-lg text-[#1F2A44]/80 leading-relaxed max-w-xl">
+                Lintang menghadirkan ekosistem peta diri terintegrasi untuk mengenali ritme bawaan lahir, memetakan potensi karier, dan menata arah langkah hidup Anda melalui sintesis berbobot <strong>Numerologi Pythagoras, Astrologi Natal, BaZi, dan Tarot</strong>.
+              </p>
+
+              {/* Action Pair */}
+              <div className="flex flex-wrap items-center gap-3.5 pt-2">
+                <button
+                  onClick={() => onNavigateToTab('layanan')}
+                  className="px-6 py-3.5 rounded-full bg-[#1F2A44] hover:bg-[#151D2F] text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer group"
+                >
+                  <span>Jelajahi Layanan</span>
+                  <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+                    <ArrowRight className="w-3.5 h-3.5 text-white" />
+                  </span>
+                </button>
+                <button
+                  onClick={() => onOpenCalculator()}
+                  className="px-6 py-3.5 rounded-full bg-white hover:bg-[#F4EDE1] border border-[#1F2A44]/20 text-[#1F2A44] font-semibold text-sm transition-colors flex items-center gap-2 cursor-pointer shadow-xs"
+                >
+                  <Sparkles className="w-4 h-4 text-[#C9A45C]" />
+                  <span>Coba Kalkulator Gratis</span>
+                </button>
+              </div>
+
+              {/* Jaminan Etika & Legal PDP */}
+              <div className="pt-4 flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-[#1F2A44]/70 border-t border-[#1F2A44]/10">
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-[#8A9A7B]" />
+                  <span>Peta Reflektif, Bukan Ramalan Fatalistis</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-[#8A9A7B]" />
+                  <span>Kerahasiaan UU No. 27/2022 PDP</span>
                 </span>
               </div>
             </div>
-            <p className="text-xs text-[#F4EDE1]/70 mt-3 italic max-w-md">
-              “Garis 8–5–2 menanjak seperti langkah hidup, cabang ke 9 menggenapi siklus.”
-            </p>
-          </div>
 
-          {/* Headline & Value Proposition */}
-          <div className="space-y-4 max-w-2xl mx-auto">
-            <h1 className="font-serif-cormorant text-4xl sm:text-6xl font-bold tracking-tight text-white leading-tight">
-              Baca polamu, <br />
-              <span className="text-[#C9A45C] italic font-normal">pilih langkahmu.</span>
-            </h1>
-            <p className="text-sm sm:text-base text-[#F4EDE1]/85 leading-relaxed font-sans-dm max-w-xl mx-auto">
-              Kenali ritme hidup, potensi bawaan lahir, dan arah karier lewat perpaduan berbobot
-              {' '}<strong>Numerologi Pythagoras, Astrologi Natal, BaZi, dan Tarot</strong>.
-              Disusun manual secara hangat dan rapi oleh Madam Shara.
-            </p>
-          </div>
+            {/* Kolom Kanan: Visual Card Laporan & Floating Credibility Badges */}
+            <div className="lg:col-span-5 relative">
+              <div className="relative mx-auto max-w-sm sm:max-w-md">
+                {/* Main Card: Editorial Showcase ala Cover Dokumen Lintang */}
+                <div className="bg-white rounded-3xl border border-[#1F2A44]/12 p-6 sm:p-8 shadow-xl relative z-10 space-y-6">
+                  {/* Header Laporan */}
+                  <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-[#1F2A44] flex items-center justify-center p-1 shadow">
+                        <LoShuCanvas activeNodes={[8, 5, 2, 9]} lines={[[8, 5], [5, 2], [5, 9]]} size={28} />
+                      </div>
+                      <div>
+                        <div className="font-sans-poppins font-bold text-sm tracking-tight text-[#1F2A44]">
+                          Laporan Lintang Utuh
+                        </div>
+                        <div className="text-[10px] text-[#C9A45C] font-semibold uppercase tracking-widest">
+                          Sintesis Komprehensif
+                        </div>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-md bg-[#FAF8F2] border border-[#C9A45C]/30 text-[#A8512C] text-xs font-bold">
+                      28 Hal PDF
+                    </span>
+                  </div>
 
-          {/* Action Pair */}
-          <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
-            <button
-              onClick={() => onOpenCalculator()}
-              className="px-6 py-3.5 rounded-xl bg-[#A8512C] hover:bg-[#924221] text-white font-semibold text-sm shadow-md transition-colors flex items-center gap-2 cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4 text-[#F4EDE1]" />
-              <span>Coba Kalkulator Gratis (Life Path + Musim Diri)</span>
-            </button>
-            <button
-              onClick={() => onNavigateToTab('layanan')}
-              className="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-[#F4EDE1] font-medium text-sm transition-colors flex items-center gap-2 cursor-pointer"
-            >
-              <Layers className="w-4 h-4 text-[#C9A45C]" />
-              <span>Katalog 4 Lini Layanan</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+                  {/* Visual Diagram Lo Shu & Elemen */}
+                  <div className="bg-[#FAF8F2] rounded-2xl p-5 border border-[#1F2A44]/8 space-y-4 text-center">
+                    <div className="flex justify-center">
+                      <LoShuCanvas activeNodes={[8, 5, 2, 9]} lines={[[8, 5], [5, 2], [5, 9]]} size={110} theme="light" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-xs font-bold uppercase tracking-wider text-[#A8512C]">
+                        Garis Kekuatan Rasi 8–5–2+9
+                      </div>
+                      <p className="text-xs text-[#1F2A44]/70 italic">
+                        “Pola ketekunan praktis yang menuntun arah ekspresi hidup.”
+                      </p>
+                    </div>
+                  </div>
 
-          {/* Trust Guarantees */}
-          <div className="pt-4 flex flex-wrap justify-center gap-6 text-xs text-[#F4EDE1]/75 border-t border-white/10">
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-[#8A9A7B]" />
-              <span>Bahasa Empatik & Hangat</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-[#8A9A7B]" />
-              <span>Tanpa Vonis Fatalistis</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-[#8A9A7B]" />
-              <span>Privasi UU No. 27/2022 PDP Terjamin</span>
-            </span>
-          </div>
-        </div>
-      </section>
+                  {/* Poin Isi Laporan */}
+                  <div className="space-y-2.5 text-xs text-[#1F2A44]/85">
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-[#8A9A7B]/20 text-[#8A9A7B] flex items-center justify-center font-bold text-[11px]">✓</span>
+                      <span>5 Angka Inti Pythagoras (Life Path, Soul Urge, Birthday)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-[#8A9A7B]/20 text-[#8A9A7B] flex items-center justify-center font-bold text-[11px]">✓</span>
+                      <span>Peta Astrologi Natal & Konfigurasi Zodiak Utama</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-[#8A9A7B]/20 text-[#8A9A7B] flex items-center justify-center font-bold text-[11px]">✓</span>
+                      <span>Analisis Dinamika Musim Diri Tahun Berjalan (1–9)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-[#8A9A7B]/20 text-[#8A9A7B] flex items-center justify-center font-bold text-[11px]">✓</span>
+                      <span>Rekomendasi Nyata: Bab “Langkah Minggu Ini”</span>
+                    </div>
+                  </div>
 
-      {/* ============================================================== */}
-      {/* 2. PARADIGMA: BUKAN RAMALAN, TAPI PETA (3 PILAR UTAMA) */}
-      {/* ============================================================== */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-        <div className="text-center space-y-3 max-w-2xl mx-auto mb-12">
-          <span className="text-xs uppercase tracking-widest text-[#A8512C] font-bold">
-            Paradigma Lintang
-          </span>
-          <h2 className="font-serif-cormorant text-3xl sm:text-4xl font-bold text-[#1F2A44]">
-            Bukan ramalan masa depan, melainkan peta pemahaman diri.
-          </h2>
-          <p className="text-sm text-[#1F2A44]/75 leading-relaxed">
-            Kami membantu memetakan pola bawaan lahir agar kamu bisa memilih langkah hidup dengan lebih sadar, berdaya, dan tanpa kecemasan irasional.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-2xl border border-[#1F2A44]/10 p-6 sm:p-8 shadow-sm space-y-4 hover:border-[#C9A45C]/60 transition-colors">
-            <div className="w-12 h-12 rounded-xl bg-[#F4EDE1] border border-[#C9A45C]/30 flex items-center justify-center">
-              <Compass className="w-6 h-6 text-[#A8512C]" />
-            </div>
-            <h3 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44]">
-              Sintesis 10 Sistem Pemetaan
-            </h3>
-            <p className="text-sm text-[#1F2A44]/80 leading-relaxed">
-              Menyatukan kebijaksanaan Barat (Numerologi Pythagoras, Astrologi Natal, Tarot) dan Timur (BaZi 4 Pilar, Lo Shu Grid) ke dalam narasi bahasa Indonesia yang elegan dan mudah dipahami.
-            </p>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-[#1F2A44]/10 p-6 sm:p-8 shadow-sm space-y-4 hover:border-[#C9A45C]/60 transition-colors">
-            <div className="w-12 h-12 rounded-xl bg-[#F4EDE1] border border-[#C9A45C]/30 flex items-center justify-center">
-              <Heart className="w-6 h-6 text-[#A8512C]" />
-            </div>
-            <h3 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44]">
-              Suara Kakak yang Hangat
-            </h3>
-            <p className="text-sm text-[#1F2A44]/80 leading-relaxed">
-              Tidak ada vonis menakut-nakuti seperti “tahun sial” atau “kutukan karma”. Semua tantangan dipandang sebagai ruang belajar untuk pertumbuhan batin dan kedewasaanmu.
-            </p>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-[#1F2A44]/10 p-6 sm:p-8 shadow-sm space-y-4 hover:border-[#C9A45C]/60 transition-colors">
-            <div className="w-12 h-12 rounded-xl bg-[#F4EDE1] border border-[#C9A45C]/30 flex items-center justify-center">
-              <CheckCircle2 className="w-6 h-6 text-[#8A9A7B]" />
-            </div>
-            <h3 className="font-serif-cormorant text-2xl font-bold text-[#1F2A44]">
-              Membumi & Praktis
-            </h3>
-            <p className="text-sm text-[#1F2A44]/80 leading-relaxed">
-              Setiap laporan ditutup dengan bagian “Langkah Minggu Ini”: rekomendasi konkret dan aplikatif yang bisa langsung kamu terapkan dalam karier, finansial, dan relasi sehari-hari.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Subtle hairline section divider */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <hr className="border-t border-[#1F2A44]/10" />
-      </div>
-
-      {/* ============================================================== */}
-      {/* 3. SHOWCASE DUA KARTU: PRATINJAU LAPORAN & KALKULATOR CEPAT */}
-      {/* ============================================================== */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
-        <div className="text-center space-y-3 max-w-xl mx-auto mb-12">
-          <span className="text-xs uppercase tracking-widest text-[#A8512C] font-bold">
-            Pratinjau & Akses Cepat
-          </span>
-          <h2 className="font-serif-cormorant text-3xl sm:text-4xl font-bold text-[#1F2A44]">
-            Sentuhan Rapi & Estetis di Setiap Halaman
-          </h2>
-          <p className="text-sm text-[#1F2A44]/75">
-            Laporan format PDF resolusi tinggi dengan nomor pesanan terverifikasi dan garansi koreksi data lahir 24 jam.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-          {/* KARTU 1: PRATINJAU LAPORAN EDITORIAL (BIRU MALAM CANVAS) */}
-          <div className="bg-[#1F2A44] text-[#F4EDE1] rounded-2xl border border-[#C9A45C]/30 p-6 sm:p-8 shadow-md flex flex-col justify-between">
-            <div className="space-y-6">
-              {/* Slide Selector Tabs */}
-              <div className="flex items-center gap-2 border-b border-white/10 pb-4">
-                {reportSlides.map((slide, idx) => (
+                  {/* Tombol Pesan Langsung */}
                   <button
-                    key={slide.id}
-                    onClick={() => setSelectedSlide(idx)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                      selectedSlide === idx
-                        ? 'bg-[#A8512C] text-white shadow-sm'
-                        : 'text-[#F4EDE1]/70 hover:text-white hover:bg-white/10'
-                    }`}
+                    onClick={() => {
+                      const utuh = SERVICES.find((s) => s.id === 'lintang-utuh') || SERVICES[0];
+                      onStartBooking(utuh);
+                    }}
+                    className="w-full py-3 rounded-xl bg-[#A8512C] hover:bg-[#924221] text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow"
                   >
-                    {slide.badge}
+                    <span>Pesan Laporan Lintang Utuh (Rp199.000)</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
+                </div>
+
+                {/* Floating Badge 1: Lo Shu Grid */}
+                <div className="absolute -top-4 -left-4 sm:-left-6 bg-white border border-[#1F2A44]/10 shadow-lg rounded-2xl p-3 flex items-center gap-2.5 z-20 animate-none">
+                  <div className="w-8 h-8 rounded-lg bg-[#FAF8F2] border border-[#C9A45C]/40 flex items-center justify-center font-serif text-sm font-bold text-[#A8512C]">
+                    3×3
+                  </div>
+                  <div className="text-left">
+                    <div className="text-[11px] font-bold text-[#1F2A44]">Lo Shu 8-5-2</div>
+                    <div className="text-[9px] text-[#1F2A44]/60">Matriks Kisi Bawaan</div>
+                  </div>
+                </div>
+
+                {/* Floating Badge 2: Pythagorean Numerology */}
+                <div className="absolute -bottom-4 -right-4 sm:-right-6 bg-white border border-[#1F2A44]/10 shadow-lg rounded-2xl p-3 flex items-center gap-2.5 z-20">
+                  <div className="w-8 h-8 rounded-lg bg-[#FAF8F2] border border-[#C9A45C]/40 flex items-center justify-center font-serif text-sm font-bold text-[#C9A45C]">
+                    1–9
+                  </div>
+                  <div className="text-left">
+                    <div className="text-[11px] font-bold text-[#1F2A44]">Pythagoras</div>
+                    <div className="text-[9px] text-[#1F2A44]/60">Siklus 9 Musim Diri</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================== */}
+      {/* 2. TENTANG KAMI & AUDIENCE CHIP CLOUD (MIRIP AMIRETHA SECTION) */}
+      {/* ============================================================== */}
+      <section className="py-16 sm:py-24 bg-white border-b border-[#1F2A44]/8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+            
+            {/* Kolom Kiri: Narasi Studio */}
+            <div className="lg:col-span-7 space-y-4">
+              <span className="text-xs font-bold tracking-widest uppercase text-[#A8512C]">
+                Tentang Lintang Studio
+              </span>
+              <h2 className="font-sans-poppins text-2xl sm:text-4xl font-bold tracking-tight text-[#1F2A44]">
+                Mitra reflektif untuk <span className="text-[#C2673F]">pertumbuhan diri yang berdaya</span>
+              </h2>
+              <p className="text-sm sm:text-base text-[#1F2A44]/80 leading-relaxed pt-2">
+                Lintang Studio Peta Diri didirikan oleh <strong>Madam Shara</strong> dengan satu keyakinan mendasar: <em>“Peta, bukan ramalan”</em>. Kami memadukan kearifan sistem perhitungan klasik Barat dan Timur menjadi panduan refleksi modern yang membumi, elegan, dan tanpa penghakiman fatalistis.
+              </p>
+              <p className="text-sm sm:text-base text-[#1F2A44]/80 leading-relaxed">
+                Setiap laporan dikerjakan secara teliti dengan mempertimbangkan konteks kehidupan nyata Anda saat ini, membantu Anda memahami pola bawaan lahir dan merumuskan langkah konkret yang bisa langsung diambil.
+              </p>
+              <div className="pt-3">
+                <button
+                  onClick={() => onNavigateToTab('tentang')}
+                  className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[#1F2A44] hover:text-[#A8512C] transition-colors cursor-pointer"
+                >
+                  <span>Selengkapnya tentang filosofi Madam Shara</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Kolom Kanan: Audience Panel & Chip Cloud (Gaya Amiretha) */}
+            <div className="lg:col-span-5 bg-[#FAF8F2] rounded-3xl p-6 sm:p-8 border border-[#1F2A44]/10 space-y-5">
+              <span className="text-xs font-bold tracking-widest uppercase text-[#C9A45C]">
+                Ekosistem yang Kami Dampingi
+              </span>
+              <h3 className="font-sans-poppins text-xl font-bold text-[#1F2A44]">
+                Menemani Langkah Berbagai Individu & Fase Kehidupan
+              </h3>
+              <p className="text-xs text-[#1F2A44]/70 leading-relaxed">
+                Dari penentuan transisi karier profesional hingga keharmonisan relasi antarpribadi:
+              </p>
+
+              <div className="flex flex-wrap gap-2 pt-1">
+                {audienceChips.map((chip, idx) => (
+                  <span
+                    key={idx}
+                    className="px-3.5 py-1.5 rounded-full bg-white border border-[#1F2A44]/10 text-xs font-medium text-[#1F2A44] shadow-2xs hover:border-[#C9A45C] transition-colors"
+                  >
+                    {chip}
+                  </span>
                 ))}
               </div>
+            </div>
 
-              <div>
-                <div className="flex items-center justify-between gap-4 mb-2">
-                  <h3 className="font-serif-cormorant text-2xl sm:text-3xl font-bold text-white">
-                    {reportSlides[selectedSlide].title}
-                  </h3>
-                  <span className="font-serif-cormorant text-xl font-bold text-[#C9A45C] shrink-0">
-                    {reportSlides[selectedSlide].price}
-                  </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================== */}
+      {/* 3. LAYANAN KAMI (SERVICE CARDS GAYA AMIRETHA PUBLISHING)       */}
+      {/* ============================================================== */}
+      <section className="py-16 sm:py-24 bg-[#FAF8F2] border-b border-[#1F2A44]/8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <span className="text-xs font-bold tracking-widest uppercase text-[#A8512C]">
+              Layanan Pembacaan Peta Diri
+            </span>
+            <h2 className="font-sans-poppins text-3xl sm:text-4xl font-bold tracking-tight text-[#1F2A44]">
+              4 Pintu Gerbang Eksplorasi Diri
+            </h2>
+            <p className="text-sm text-[#1F2A44]/75">
+              Pilih kedalaman pemetaan yang paling sesuai dengan kebutuhan refleksi dan fase hidup Anda saat ini.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+            {/* Kartu 1: Seri Angka */}
+            <div className="bg-white rounded-3xl border border-[#1F2A44]/10 p-6 flex flex-col justify-between shadow-sm hover:border-[#C9A45C]/60 transition-all hover:shadow-md">
+              <div className="space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-[#FAF8F2] border border-[#C9A45C]/30 flex items-center justify-center font-sans-poppins font-bold text-lg text-[#A8512C]">
+                  1–9
                 </div>
-                <p className="text-xs sm:text-sm text-[#F4EDE1]/75">
-                  {reportSlides[selectedSlide].subtitle}
+                <div>
+                  <h3 className="font-sans-poppins text-lg font-bold text-[#1F2A44]">
+                    Seri Angka
+                  </h3>
+                  <div className="text-xs font-semibold text-[#A8512C] mt-0.5">
+                    Kode Diri & Musim Diri
+                  </div>
+                </div>
+                <p className="text-xs text-[#1F2A44]/75 leading-relaxed">
+                  Pemetaan numerologi Pythagoras 5 angka inti untuk memahami potensi bawaan lahir serta siklus 9 tahun musim diri.
+                </p>
+
+                <div className="space-y-2 pt-2 border-t border-gray-100 text-xs text-[#1F2A44]/80">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#C9A45C] font-bold">✓</span>
+                    <span>Life Path & Soul Urge</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#C9A45C] font-bold">✓</span>
+                    <span>Siklus Tahun Personal (1–9)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#C9A45C] font-bold">✓</span>
+                    <span>Kisi Lo Shu 3×3 & Garis Karakter</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-gray-100 space-y-3">
+                <div className="text-sm font-bold text-[#1F2A44]">Mulai Rp149.000</div>
+                <button
+                  onClick={() => onNavigateToTab('layanan')}
+                  className="w-full py-2.5 rounded-xl bg-[#FAF8F2] hover:bg-[#F4EDE1] border border-[#1F2A44]/15 text-[#1F2A44] text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>Selengkapnya</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#C9A45C]" />
+                </button>
+              </div>
+            </div>
+
+            {/* Kartu 2: Seri Langit */}
+            <div className="bg-white rounded-3xl border border-[#1F2A44]/10 p-6 flex flex-col justify-between shadow-sm hover:border-[#C9A45C]/60 transition-all hover:shadow-md">
+              <div className="space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-[#FAF8F2] border border-[#C9A45C]/30 flex items-center justify-center font-sans-poppins font-bold text-lg text-[#1F2A44]">
+                  ✦
+                </div>
+                <div>
+                  <h3 className="font-sans-poppins text-lg font-bold text-[#1F2A44]">
+                    Seri Langit
+                  </h3>
+                  <div className="text-xs font-semibold text-[#A8512C] mt-0.5">
+                    Peta Bintang & BaZi
+                  </div>
+                </div>
+                <p className="text-xs text-[#1F2A44]/75 leading-relaxed">
+                  Sintesis astrologi Barat dan Empat Pilar Nasib (BaZi) dengan penyesuaian fleksibel jika jam lahir tidak diketahui.
+                </p>
+
+                <div className="space-y-2 pt-2 border-t border-gray-100 text-xs text-[#1F2A44]/80">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#C9A45C] font-bold">✓</span>
+                    <span>Konfigurasi Planet Kelahiran</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#C9A45C] font-bold">✓</span>
+                    <span>Keseimbangan 5 Elemen BaZi</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#C9A45C] font-bold">✓</span>
+                    <span>Opsi Jam Lahir Fleksibel</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-gray-100 space-y-3">
+                <div className="text-sm font-bold text-[#1F2A44]">Mulai Rp149.000</div>
+                <button
+                  onClick={() => onNavigateToTab('layanan')}
+                  className="w-full py-2.5 rounded-xl bg-[#FAF8F2] hover:bg-[#F4EDE1] border border-[#1F2A44]/15 text-[#1F2A44] text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>Selengkapnya</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#C9A45C]" />
+                </button>
+              </div>
+            </div>
+
+            {/* Kartu 3: Seri Relasi (Dua Lintang) */}
+            <div className="bg-white rounded-3xl border border-[#1F2A44]/10 p-6 flex flex-col justify-between shadow-sm hover:border-[#C9A45C]/60 transition-all hover:shadow-md">
+              <div className="space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-[#FAF8F2] border border-[#C9A45C]/30 flex items-center justify-center font-sans-poppins font-bold text-lg text-[#A8512C]">
+                  <Heart className="w-5 h-5 text-[#A8512C]" />
+                </div>
+                <div>
+                  <h3 className="font-sans-poppins text-lg font-bold text-[#1F2A44]">
+                    Seri Relasi
+                  </h3>
+                  <div className="text-xs font-semibold text-[#A8512C] mt-0.5">
+                    Dua Lintang (Dinamika Berdua)
+                  </div>
+                </div>
+                <p className="text-xs text-[#1F2A44]/75 leading-relaxed">
+                  Menelaah sinergi, pemicu friksi emosional, dan panduan komunikasi sehat untuk pasangan atau mitra hidup.
+                </p>
+
+                <div className="space-y-2 pt-2 border-t border-gray-100 text-xs text-[#1F2A44]/80">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#C9A45C] font-bold">✓</span>
+                    <span>Titik Temu Dua Frekuensi Lahir</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#C9A45C] font-bold">✓</span>
+                    <span>Panduan Komunikasi & Resolusi</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#C9A45C] font-bold">✓</span>
+                    <span>Izin Orang Kedua Patuh UU PDP</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-gray-100 space-y-3">
+                <div className="text-sm font-bold text-[#1F2A44]">Rp149.000</div>
+                <button
+                  onClick={() => onNavigateToTab('dua-lintang')}
+                  className="w-full py-2.5 rounded-xl bg-[#FAF8F2] hover:bg-[#F4EDE1] border border-[#1F2A44]/15 text-[#1F2A44] text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>Selengkapnya</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#C9A45C]" />
+                </button>
+              </div>
+            </div>
+
+            {/* Kartu 4: Flagship Lintang Utuh */}
+            <div className="bg-[#1F2A44] text-[#F4EDE1] rounded-3xl border-2 border-[#C9A45C]/50 p-6 flex flex-col justify-between shadow-lg relative">
+              <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-[#A8512C] text-white text-[10px] font-bold uppercase tracking-wider shadow">
+                Laporan Utama
+              </div>
+              <div className="space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-white/10 border border-[#C9A45C]/40 flex items-center justify-center font-sans-poppins font-bold text-lg text-[#C9A45C]">
+                  ★
+                </div>
+                <div>
+                  <h3 className="font-sans-poppins text-lg font-bold text-white">
+                    Lintang Utuh
+                  </h3>
+                  <div className="text-xs font-semibold text-[#C9A45C] mt-0.5">
+                    Sintesis Komprehensif
+                  </div>
+                </div>
+                <p className="text-xs text-[#F4EDE1]/80 leading-relaxed">
+                  Laporan lengkap 28 halaman mengintegrasikan seluruh 10 sistem pemetaan dengan bab aksi konkret rekomendasi mingguan.
+                </p>
+
+                <div className="space-y-2 pt-2 border-t border-white/10 text-xs text-[#F4EDE1]/90">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#C9A45C] font-bold">✓</span>
+                    <span>10 Sistem Pemetaan Terpadu</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#C9A45C] font-bold">✓</span>
+                    <span>28 Halaman PDF Resolusi Tinggi</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#C9A45C] font-bold">✓</span>
+                    <span>Bab Aksi "Langkah Minggu Ini"</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-white/10 space-y-3">
+                <div className="text-sm font-bold text-[#C9A45C]">Rp199.000</div>
+                <button
+                  onClick={() => {
+                    const utuh = SERVICES.find((s) => s.id === 'lintang-utuh') || SERVICES[0];
+                    onStartBooking(utuh);
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-[#A8512C] hover:bg-[#924221] text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow"
+                >
+                  <span>Pesan Sekarang</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================== */}
+      {/* 4. HUBUNGI KAMI & FORM CEPAT (PERSIS LAYOUT AMIRETHA PUBLISHING)*/}
+      {/* ============================================================== */}
+      <section className="py-16 sm:py-24 bg-white border-b border-[#1F2A44]/8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+            
+            {/* Kolom Kiri: Informasi Kontak & Legal Usaha */}
+            <div className="lg:col-span-5 space-y-6">
+              <span className="text-xs font-bold tracking-widest uppercase text-[#A8512C]">
+                Kontak & Konsultasi
+              </span>
+              <h2 className="font-sans-poppins text-2xl sm:text-3xl font-bold tracking-tight text-[#1F2A44]">
+                Terhubung dengan Studio Lintang
+              </h2>
+              <p className="text-sm text-[#1F2A44]/75 leading-relaxed">
+                Punya pertanyaan mengenai paket pemetaan atau ingin memastikan kesesuaian data lahir? Tim kami siap berdialog secara hangat.
+              </p>
+
+              <div className="space-y-4 pt-2">
+                <a
+                  href="https://wa.me/6281234567890"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-4 rounded-2xl bg-[#FAF8F2] border border-[#1F2A44]/8 hover:border-[#C9A45C]/60 flex items-start gap-4 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                    <MessageCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-[#1F2A44]/60">WhatsApp Layanan</div>
+                    <div className="text-sm font-bold text-[#1F2A44] group-hover:text-[#A8512C] transition-colors">
+                      +62 812-3456-7890 (Madam Shara & Tim)
+                    </div>
+                  </div>
+                </a>
+
+                <a
+                  href="mailto:halo@lintangpetadiri.com"
+                  className="p-4 rounded-2xl bg-[#FAF8F2] border border-[#1F2A44]/8 hover:border-[#C9A45C]/60 flex items-start gap-4 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-[#1F2A44]/60">Email Resmi</div>
+                    <div className="text-sm font-bold text-[#1F2A44] group-hover:text-[#A8512C] transition-colors">
+                      halo@lintangpetadiri.com
+                    </div>
+                  </div>
+                </a>
+
+                <div className="p-4 rounded-2xl bg-[#FAF8F2] border border-[#1F2A44]/8 flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center shrink-0">
+                    <Building2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-[#1F2A44]/60">Studio & Operasional</div>
+                    <div className="text-xs font-semibold text-[#1F2A44] leading-relaxed">
+                      Lintang Studio Peta Diri · Yogyakarta & Jakarta, Indonesia
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Kolom Kanan: Form Pesan Singkat (Lanjutkan ke WhatsApp) */}
+            <div className="lg:col-span-7 bg-[#FAF8F2] rounded-3xl p-6 sm:p-10 border border-[#1F2A44]/10 shadow-sm space-y-6">
+              <div>
+                <h3 className="font-sans-poppins text-xl sm:text-2xl font-bold text-[#1F2A44]">
+                  Kirim Pesan Singkat
+                </h3>
+                <p className="text-xs sm:text-sm text-[#1F2A44]/70 mt-1">
+                  Isi ringkasan kebutuhan pemetaan Anda, lalu lanjutkan ke WhatsApp untuk respon langsung.
                 </p>
               </div>
 
-              {/* Bullet list with clean diamond indicators */}
-              <div className="space-y-3 pt-4 border-t border-white/10">
-                {reportSlides[selectedSlide].bullets.map((b, idx) => (
-                  <div key={idx} className="flex items-start gap-3 text-sm">
-                    <span className="text-[#C9A45C] font-serif font-bold text-base leading-none">✦</span>
-                    <span className="text-[#F4EDE1]/90 leading-relaxed">{b}</span>
+              <form onSubmit={handleContactSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[#1F2A44]/70 mb-1.5">
+                      Nama Anda
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Nama lengkap atau panggilan"
+                      value={contactName}
+                      onChange={(e) => setContactName(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-[#1F2A44]/15 text-sm focus:outline-none focus:ring-2 focus:ring-[#A8512C]/40 focus:border-[#A8512C]"
+                    />
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="pt-6 mt-6 border-t border-white/10 space-y-3">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button
-                  onClick={() => handleOrderSlide(reportSlides[selectedSlide].id)}
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#A8512C] hover:bg-[#924221] text-white text-xs font-semibold transition-colors shadow flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <span>Pesan Laporan Ini</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => onNavigateToTab('layanan')}
-                  className="py-3 px-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-[#F4EDE1] text-xs font-medium transition-colors text-center cursor-pointer"
-                >
-                  Lihat Semua Layanan
-                </button>
-              </div>
-              <div className="text-xs text-[#F4EDE1]/60 text-center flex items-center justify-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-[#C9A45C]" />
-                <span>Pengerjaan manual oleh Madam Shara (2–3 hari kerja)</span>
-              </div>
-            </div>
-          </div>
-
-          {/* KARTU 2: KALKULATOR CEPAT CLIENT-SIDE */}
-          <div className="bg-white text-[#1F2A44] rounded-2xl border border-[#1F2A44]/10 p-6 sm:p-8 shadow-md flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 text-xs text-[#A8512C] font-semibold uppercase tracking-wider">
-                <Sparkles className="w-4 h-4 text-[#A8512C]" />
-                <span>Kalkulator Instan Client-Side</span>
-              </div>
-
-              <h3 className="font-serif-cormorant text-2xl sm:text-3xl font-bold text-[#1F2A44]">
-                Buka Peta Dirimu Sekarang
-              </h3>
-              <p className="text-sm text-[#1F2A44]/75 leading-relaxed">
-                Hitung Life Path Number dan Musim Diri secara instan tanpa biaya.
-                Diolah langsung di browsermu tanpa menyimpan data lahir di server.
-              </p>
-
-              <form onSubmit={handleQuickSubmit} className="space-y-4 pt-2">
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-[#1F2A44]/70 mb-1.5 font-semibold">
-                    Nama Lengkap (sesuai akta kelahiran)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: Nirwana Lintang"
-                    value={quickName}
-                    onChange={(e) => setQuickName(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#A8512C]/30 focus:border-[#A8512C]"
-                  />
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[#1F2A44]/70 mb-1.5">
+                      Tanggal Lahir
+                    </label>
+                    <input
+                      type="date"
+                      value={contactBirthDate}
+                      onChange={(e) => setContactBirthDate(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-[#1F2A44]/15 text-sm focus:outline-none focus:ring-2 focus:ring-[#A8512C]/40 focus:border-[#A8512C]"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-[#1F2A44]/70 mb-1.5 font-semibold">
-                    Tanggal Lahir
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#1F2A44]/70 mb-1.5">
+                    Kebutuhan Layanan
                   </label>
-                  <input
-                    type="date"
-                    value={quickBirthDate}
-                    onChange={(e) => setQuickBirthDate(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#A8512C]/30 focus:border-[#A8512C]"
-                  />
+                  <select
+                    value={contactService}
+                    onChange={(e) => setContactService(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl bg-white border border-[#1F2A44]/15 text-sm focus:outline-none focus:ring-2 focus:ring-[#A8512C]/40 focus:border-[#A8512C]"
+                  >
+                    <option>Lintang Utuh (Sintesis 10 Sistem)</option>
+                    <option>Seri Angka: Kode Diri & Musim Diri</option>
+                    <option>Seri Langit: Peta Bintang & BaZi</option>
+                    <option>Seri Relasi: Dua Lintang (Pasangan)</option>
+                    <option>Sekilas Lintang (Entry Level Rp49rb)</option>
+                    <option>Konsultasi Umum / Lainnya</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#1F2A44]/70 mb-1.5">
+                    Catatan atau Pertanyaan
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Ceritakan gambaran situasi atau pertanyaan spesifik yang ingin Anda refleksikan..."
+                    value={contactMessage}
+                    onChange={(e) => setContactMessage(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl bg-white border border-[#1F2A44]/15 text-sm focus:outline-none focus:ring-2 focus:ring-[#A8512C]/40 focus:border-[#A8512C]"
+                  ></textarea>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 px-4 rounded-xl bg-[#C9A45C] hover:bg-[#d8b56f] text-[#1F2A44] font-semibold text-sm shadow transition-colors flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  className="w-full py-3.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md"
                 >
-                  <Sparkles className="w-4 h-4 text-[#1F2A44]" />
-                  <span>Hitung Peta Diri (Gratis)</span>
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Lanjutkan ke WhatsApp</span>
                 </button>
               </form>
             </div>
 
-            <div className="pt-4 mt-6 border-t border-gray-100 text-center text-xs text-[#1F2A44]/65 flex items-center justify-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-[#8A9A7B]" />
-              <span>Privasi data lahir terjamin sesuai ketentuan UU No. 27/2022 PDP.</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================== */}
+      {/* 5. FAQ (PERTANYAAN YANG SERING DIAJUKAN - AMIRETHA STYLE)       */}
+      {/* ============================================================== */}
+      <section className="py-16 sm:py-24 bg-[#FAF8F2] border-b border-[#1F2A44]/8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+            
+            {/* Kolom Kiri: Pengantar FAQ & Tombol Chat */}
+            <div className="lg:col-span-5 space-y-4">
+              <span className="text-xs font-bold tracking-widest uppercase text-[#A8512C]">
+                FAQ
+              </span>
+              <h2 className="font-sans-poppins text-2xl sm:text-4xl font-bold tracking-tight text-[#1F2A44]">
+                Pertanyaan yang sering diajukan
+              </h2>
+              <p className="text-sm text-[#1F2A44]/75 leading-relaxed">
+                Belum menemukan jawaban yang Anda cari? Tim kami siap membantu menjelaskan metodologi, batasan etika, dan ruang lingkup pembacaan peta diri Anda.
+              </p>
+              <div className="pt-2">
+                <a
+                  href="https://wa.me/6281234567890"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-semibold shadow transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Chat Kami di WhatsApp</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Kolom Kanan: Akordion FAQ Bersih */}
+            <div className="lg:col-span-7 space-y-3">
+              {faqs.map((faq, idx) => {
+                const isOpen = openFaq === idx;
+                return (
+                  <div
+                    key={idx}
+                    className="bg-white rounded-2xl border border-[#1F2A44]/10 overflow-hidden transition-all shadow-2xs"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleFaq(idx)}
+                      className="w-full p-5 text-left flex items-center justify-between gap-4 font-sans-poppins font-semibold text-sm sm:text-base text-[#1F2A44] hover:text-[#A8512C] transition-colors cursor-pointer"
+                    >
+                      <span>{faq.q}</span>
+                      <span className="w-6 h-6 rounded-full bg-[#FAF8F2] flex items-center justify-center text-[#A8512C] shrink-0 font-bold">
+                        {isOpen ? <Minus className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                      </span>
+                    </button>
+                    {isOpen && (
+                      <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-[#1F2A44]/80 leading-relaxed border-t border-gray-100">
+                        {faq.a}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================== */}
+      {/* 6. CALL TO ACTION SECTION (HERO BANNER BAWAH ALA AMIRETHA)     */}
+      {/* ============================================================== */}
+      <section className="py-16 sm:py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-[#1F2A44] text-[#F4EDE1] rounded-3xl p-8 sm:p-14 border border-[#C9A45C]/30 shadow-xl relative overflow-hidden">
+            <div className="max-w-2xl space-y-5 relative z-10">
+              <span className="text-xs font-bold tracking-widest uppercase text-[#C9A45C]">
+                Langkah Nyata Hari Ini
+              </span>
+              <h2 className="font-sans-poppins text-2xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
+                Wujudkan Hidup yang Lebih Terarah, Sadar, dan Penuh Makna
+              </h2>
+              <p className="text-sm sm:text-base text-[#F4EDE1]/85 leading-relaxed">
+                Diskusikan kebutuhan pemetaan diri atau mulailah dari kalkulator gratis. Bersama Lintang Studio, kenali ritme alami Anda dan melangkah dengan mantap.
+              </p>
+              
+              <div className="flex flex-wrap items-center gap-3.5 pt-3">
+                <a
+                  href="https://wa.me/6281234567890?text=Halo%20Madam%20Shara%2C%20saya%20ingin%20berkonsultasi%20mengenai%20pemetaan%20peta%20diri%20saya."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-3.5 rounded-full bg-[#C2673F] hover:bg-[#A8512C] text-white font-semibold text-sm transition-colors shadow flex items-center gap-2 cursor-pointer"
+                >
+                  <span>Hubungi via WhatsApp</span>
+                  <ArrowRight className="w-4 h-4" />
+                </a>
+                <button
+                  onClick={() => onOpenCalculator()}
+                  className="px-6 py-3.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-[#F4EDE1] font-medium text-sm transition-colors cursor-pointer"
+                >
+                  Hitung Peta Diri Gratis
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Subtle hairline section divider */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <hr className="border-t border-[#1F2A44]/10" />
-      </div>
-
-      {/* ============================================================== */}
-      {/* 4. KATALOG 4 LINI LAYANAN (MASTER PLAN SECTION 3.2) */}
-      {/* ============================================================== */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 space-y-10">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div className="space-y-2">
-            <span className="text-xs uppercase tracking-widest text-[#A8512C] font-bold">
-              Katalog Layanan Lintang
-            </span>
-            <h2 className="font-serif-cormorant text-3xl sm:text-4xl font-bold text-[#1F2A44]">
-              4 Pintu Gerbang Menuju Peta Dirimu
-            </h2>
-            <p className="text-sm text-[#1F2A44]/75">
-              Pilih kedalaman pemetaan yang paling relevan dengan fase hidupmu saat ini.
-            </p>
-          </div>
-          <button
-            onClick={() => onNavigateToTab('layanan')}
-            className="inline-flex items-center gap-2 text-xs font-semibold text-[#A8512C] hover:text-[#924221] transition-colors cursor-pointer shrink-0"
-          >
-            <span>Buka Katalog Lengkap</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* LINI 1: SERI ANGKA */}
-          <div className="bg-white rounded-2xl border border-[#1F2A44]/10 p-6 shadow-sm flex flex-col justify-between hover:border-[#C9A45C]/60 transition-colors">
-            <div className="space-y-4">
-              <div className="w-10 h-10 rounded-xl bg-[#F4EDE1] border border-[#C9A45C]/30 flex items-center justify-center">
-                <span className="font-serif-cormorant text-lg font-bold text-[#A8512C]">1–9</span>
-              </div>
-              <div>
-                <span className="text-xs uppercase font-bold tracking-wider text-[#A8512C]">
-                  Seri Angka
-                </span>
-                <h3 className="font-serif-cormorant text-xl font-bold text-[#1F2A44] mt-1">
-                  Kode Diri & Musim Diri
-                </h3>
-              </div>
-              <p className="text-xs sm:text-sm text-[#1F2A44]/75 leading-relaxed">
-                Numerologi Pythagoras 5 angka inti & siklus tahun personal 1–9 untuk membaca ritme hidup.
-              </p>
-              <div className="text-xs text-[#1F2A44]/65 pt-3 border-t border-gray-100">
-                <strong className="text-[#1F2A44]">Data:</strong> Nama akta + tanggal lahir
-              </div>
-            </div>
-            <div className="pt-4 mt-6 border-t border-gray-100 flex items-center justify-between">
-              <span className="text-xs font-bold text-[#A8512C]">Mulai Rp149 rb</span>
-              <button
-                onClick={() => onNavigateToTab('layanan')}
-                className="p-2 rounded-lg bg-[#F4EDE1] hover:bg-[#eae1d1] text-[#1F2A44] transition-colors cursor-pointer"
-                title="Pilih Seri Angka"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* LINI 2: SERI LANGIT */}
-          <div className="bg-white rounded-2xl border border-[#1F2A44]/10 p-6 shadow-sm flex flex-col justify-between hover:border-[#C9A45C]/60 transition-colors">
-            <div className="space-y-4">
-              <div className="w-10 h-10 rounded-xl bg-[#F4EDE1] border border-[#C9A45C]/30 flex items-center justify-center">
-                <Moon className="w-5 h-5 text-[#1F2A44]" />
-              </div>
-              <div>
-                <span className="text-xs uppercase font-bold tracking-wider text-[#A8512C]">
-                  Seri Langit
-                </span>
-                <h3 className="font-serif-cormorant text-xl font-bold text-[#1F2A44] mt-1">
-                  Peta Bintang & BaZi
-                </h3>
-              </div>
-              <p className="text-xs sm:text-sm text-[#1F2A44]/75 leading-relaxed">
-                Astrologi Barat & Empat Pilar Nasib Tiongkok dengan opsi jam lahir fleksibel.
-              </p>
-              <div className="text-xs text-[#1F2A44]/65 pt-3 border-t border-gray-100">
-                <strong className="text-[#1F2A44]">Data:</strong> Tanggal, jam, & kota lahir
-              </div>
-            </div>
-            <div className="pt-4 mt-6 border-t border-gray-100 flex items-center justify-between">
-              <span className="text-xs font-bold text-[#A8512C]">Mulai Rp149 rb</span>
-              <button
-                onClick={() => onNavigateToTab('layanan')}
-                className="p-2 rounded-lg bg-[#F4EDE1] hover:bg-[#eae1d1] text-[#1F2A44] transition-colors cursor-pointer"
-                title="Pilih Seri Langit"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* LINI 3: SERI RELASI */}
-          <div className="bg-white rounded-2xl border border-[#1F2A44]/10 p-6 shadow-sm flex flex-col justify-between hover:border-[#C9A45C]/60 transition-colors">
-            <div className="space-y-4">
-              <div className="w-10 h-10 rounded-xl bg-[#F4EDE1] border border-[#C9A45C]/30 flex items-center justify-center">
-                <Heart className="w-5 h-5 text-[#A8512C]" />
-              </div>
-              <div>
-                <span className="text-xs uppercase font-bold tracking-wider text-[#A8512C]">
-                  Seri Relasi
-                </span>
-                <h3 className="font-serif-cormorant text-xl font-bold text-[#1F2A44] mt-1">
-                  Dua Lintang
-                </h3>
-              </div>
-              <p className="text-xs sm:text-sm text-[#1F2A44]/75 leading-relaxed">
-                Matriks dinamika sinergi & titik friksi berdua (pasangan atau sahabat terdekat).
-              </p>
-              <div className="text-xs text-[#1F2A44]/65 pt-3 border-t border-gray-100">
-                <strong className="text-[#1F2A44]">Data:</strong> Dua tanggal lahir + izin
-              </div>
-            </div>
-            <div className="pt-4 mt-6 border-t border-gray-100 flex items-center justify-between">
-              <span className="text-xs font-bold text-[#A8512C]">Rp149 rb</span>
-              <button
-                onClick={() => onNavigateToTab('dua-lintang')}
-                className="p-2 rounded-lg bg-[#F4EDE1] hover:bg-[#eae1d1] text-[#1F2A44] transition-colors cursor-pointer"
-                title="Coba Dua Lintang"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* LINI 4: PAKET UTUH (FLAGSHIP CARD DALAM BIRU MALAM) */}
-          <div className="bg-[#1F2A44] text-[#F4EDE1] rounded-2xl border-2 border-[#C9A45C]/60 p-6 shadow-md flex flex-col justify-between relative">
-            <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-[#A8512C] text-white text-xs font-bold uppercase tracking-wider shadow">
-              Mulai Dari Sini
-            </div>
-            <div className="space-y-4">
-              <div className="w-10 h-10 rounded-xl bg-white/10 border border-[#C9A45C]/40 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-[#C9A45C]" />
-              </div>
-              <div>
-                <span className="text-xs uppercase font-bold tracking-wider text-[#C9A45C]">
-                  Paket Pilihan
-                </span>
-                <h3 className="font-serif-cormorant text-xl font-bold text-white mt-1">
-                  Sekilas & Lintang Utuh
-                </h3>
-              </div>
-              <p className="text-xs sm:text-sm text-[#F4EDE1]/80 leading-relaxed">
-                Pintu masuk terjangkau (Rp49rb) atau sintesis penuh 10 sistem (Rp199rb).
-              </p>
-              <div className="text-xs text-[#F4EDE1]/65 pt-3 border-t border-white/10">
-                <strong className="text-white">Format:</strong> PDF siap baca + aksi nyata
-              </div>
-            </div>
-            <div className="pt-4 mt-6 border-t border-white/10 flex items-center justify-between">
-              <span className="text-xs font-bold text-[#C9A45C]">Rp49 rb – Rp199 rb</span>
-              <button
-                onClick={() => onNavigateToTab('layanan')}
-                className="p-2 rounded-lg bg-[#C9A45C] hover:bg-[#d8b56f] text-[#1F2A44] transition-colors cursor-pointer"
-                title="Pilih Paket"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Subtle hairline section divider */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <hr className="border-t border-[#1F2A44]/10" />
-      </div>
-
-      {/* ============================================================== */}
-      {/* 5. CARA KERJA 3 LANGKAH (MASTER PLAN SECTION 3.1 & 5) */}
-      {/* ============================================================== */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20 space-y-12">
-        <div className="text-center space-y-3 max-w-xl mx-auto">
-          <span className="text-xs uppercase tracking-widest text-[#A8512C] font-bold">
-            Alur Pemesanan Cepat
-          </span>
-          <h2 className="font-serif-cormorant text-3xl sm:text-4xl font-bold text-[#1F2A44]">
-            Cara Kerja Lintang dalam 3 Langkah
-          </h2>
-          <p className="text-sm text-[#1F2A44]/75">
-            Didesain transparan, cepat, tanpa registrasi akun yang berbelit-belit.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-2xl border border-[#1F2A44]/10 p-6 sm:p-8 space-y-3 shadow-sm">
-            <div className="text-xs font-bold text-[#A8512C] font-mono tracking-wider">LANGKAH 01</div>
-            <h3 className="font-serif-cormorant text-xl font-bold text-[#1F2A44]">Pilih Layanan</h3>
-            <p className="text-xs sm:text-sm text-[#1F2A44]/75 leading-relaxed">
-              Tentukan laporan yang kamu butuhkan: Seri Angka, Seri Langit, Seri Relasi, atau Paket Lintang Utuh.
-            </p>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-[#1F2A44]/10 p-6 sm:p-8 space-y-3 shadow-sm">
-            <div className="text-xs font-bold text-[#A8512C] font-mono tracking-wider">LANGKAH 02</div>
-            <h3 className="font-serif-cormorant text-xl font-bold text-[#1F2A44]">Isi Data Lahir Aman</h3>
-            <p className="text-xs sm:text-sm text-[#1F2A44]/75 leading-relaxed">
-              Masukkan nama akta dan tanggal lahir. Jika jam lahir tidak diketahui, sistem otomatis menyesuaikan batasan laporan secara transparan.
-            </p>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-[#1F2A44]/10 p-6 sm:p-8 space-y-3 shadow-sm">
-            <div className="text-xs font-bold text-[#A8512C] font-mono tracking-wider">LANGKAH 03</div>
-            <h3 className="font-serif-cormorant text-xl font-bold text-[#1F2A44]">Terima Laporan PDF</h3>
-            <p className="text-xs sm:text-sm text-[#1F2A44]/75 leading-relaxed">
-              Laporan disusun manual oleh Madam Shara (2–3 hari kerja), dikirim via WhatsApp dengan nomor pesanan resmi dan garansi revisi data 24 jam.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Subtle hairline section divider */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <hr className="border-t border-[#1F2A44]/10" />
-      </div>
-
-      {/* ============================================================== */}
-      {/* 6. BUKTI SOSIAL / TESTIMONI TERVERIFIKASI */}
-      {/* ============================================================== */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20 space-y-12">
-        <div className="text-center space-y-3 max-w-xl mx-auto">
-          <span className="text-xs uppercase tracking-widest text-[#A8512C] font-bold">
-            Kata Mereka yang Telah Membaca Pola
-          </span>
-          <h2 className="font-serif-cormorant text-3xl sm:text-4xl font-bold text-[#1F2A44]">
-            Pengalaman Bersama Lintang
-          </h2>
-          <p className="text-sm text-[#1F2A44]/75">
-            Refleksi nyata dari teman-teman yang telah menggunakan laporan Lintang sebagai kompas hidup.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {testimonials.map((t, idx) => (
-            <div
-              key={idx}
-              className="bg-white rounded-2xl border border-[#1F2A44]/10 p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-sm"
-            >
-              <p className="text-xs sm:text-sm text-[#1F2A44]/80 italic leading-relaxed">
-                {t.text}
-              </p>
-              <div className="pt-4 border-t border-gray-100 flex items-center justify-between text-xs">
-                <div>
-                  <div className="font-semibold text-[#1F2A44]">{t.name}</div>
-                  <div className="text-[#1F2A44]/60 text-xs">{t.role}</div>
-                </div>
-                <span className="px-2.5 py-1 rounded-md bg-[#F4EDE1] text-[#A8512C] text-xs font-semibold">
-                  {t.service}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Subtle hairline section divider */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <hr className="border-t border-[#1F2A44]/10" />
-      </div>
-
-      {/* ============================================================== */}
-      {/* 7. 5 NILAI LINTANG (PRINSIP FUNDAMENTAL) */}
-      {/* ============================================================== */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 space-y-10">
-        <div className="text-center space-y-3 max-w-lg mx-auto">
-          <span className="text-xs uppercase tracking-widest text-[#A8512C] font-bold">
-            Prinsip Fundamental
-          </span>
-          <h2 className="font-serif-cormorant text-3xl sm:text-4xl font-bold text-[#1F2A44]">
-            5 Nilai yang Selalu Kami Jaga
-          </h2>
-          <p className="text-sm text-[#1F2A44]/75">
-            Komitmen etis kami dalam setiap pembacaan dan penyusunan laporan peta diri.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {CORE_VALUES.map((val, idx) => (
-            <div
-              key={idx}
-              className="bg-white/80 rounded-2xl border border-[#1F2A44]/10 p-5 space-y-3 shadow-sm hover:border-[#C9A45C]/50 transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-serif-cormorant text-xl font-bold text-[#A8512C]">
-                  {val.name}
-                </span>
-                <span className="text-xs text-[#1F2A44]/40 font-mono">0{idx + 1}</span>
-              </div>
-              <div className="text-xs font-semibold text-[#1F2A44] italic">
-                “{val.tagline}”
-              </div>
-              <p className="text-xs text-[#1F2A44]/70 leading-relaxed">
-                {val.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ============================================================== */}
-      {/* 8. FOOTER CALL-TO-ACTION BANNER (DEEP BIRU MALAM) */}
-      {/* ============================================================== */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-20 text-center">
-        <div className="p-8 sm:p-12 rounded-2xl bg-[#1F2A44] text-[#F4EDE1] border border-[#C9A45C]/30 shadow-lg space-y-6">
-          <div className="w-12 h-12 rounded-xl bg-white/10 border border-[#C9A45C]/40 flex items-center justify-center mx-auto text-[#C9A45C] font-serif-cormorant text-2xl font-bold">
-            ✦
-          </div>
-          <h2 className="font-serif-cormorant text-3xl sm:text-5xl font-bold text-white">
-            Siap Membaca Pola Langkahmu?
-          </h2>
-          <p className="text-sm sm:text-base text-[#F4EDE1]/80 max-w-lg mx-auto leading-relaxed">
-            Mulai dari kalkulator gratis atau konsultasikan langsung kebutuhan laporanmu bersama Madam Shara via WhatsApp.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
-            <button
-              onClick={() => onOpenCalculator()}
-              className="px-6 py-3.5 rounded-xl bg-[#A8512C] hover:bg-[#924221] text-white font-semibold text-sm shadow transition-colors flex items-center gap-2 cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4 text-[#F4EDE1]" />
-              <span>Coba Kalkulator Gratis</span>
-            </button>
-            <button
-              onClick={() => onNavigateToTab('layanan')}
-              className="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-[#F4EDE1] text-sm font-semibold transition-colors cursor-pointer"
-            >
-              <span>Katalog Semua Layanan</span>
-            </button>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };
